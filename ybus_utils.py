@@ -833,7 +833,7 @@ def fillYbusUnique(bus1: str, bus2: str, Yval: float, Ybus: Dict):
     if bus2 not in Ybus:
         Ybus[bus2] = {}
     if bus2 in Ybus[bus1]:
-        logger.debug('    *** WARNING: Unexpected existing value found for Ybus[' + bus1 + '][' + bus2 + '] when filling model value\n', flush=True)
+        logger.debug('    *** WARNING: Unexpected existing value found for Ybus[' + bus1 + '][' + bus2 + '] when filling model value\n')
     Ybus[bus1][bus2] = Ybus[bus2][bus1] = Yval
 
 
@@ -859,7 +859,7 @@ def fillYbusUniqueUpperLines(bus1: str, bus2: str, Yval: float, Ybus: Dict):
     if bus2 not in Ybus:
         Ybus[bus2] = {}
     if bus2 in Ybus[bus1]:
-        logger.debug('    *** WARNING: Unexpected existing value found for Ybus[' + bus1 + '][' + bus2 + '] when filling line model value\n', flush=True)
+        logger.debug('    *** WARNING: Unexpected existing value found for Ybus[' + bus1 + '][' + bus2 + '] when filling line model value\n')
     # extract the node and phase from bus1 and bus2
     node1,phase1 = bus1.split('.')
     node2,phase2 = bus2.split('.')
@@ -1459,7 +1459,7 @@ def fillYbusPowerTransformerEndXfmrs(distributedArea: DistributedModel | SwitchA
             bus1 = Bus[xfmr_name][1]
             bus2 = Bus[xfmr_name][2]
             bus3 = obj['bus']['value'].upper()
-            logger.debug('\n*** WARNING: 3-winding, 3-phase PowerTransformerEnd transformers are not supported, xfmr: ' + xfmr_name + ', bus1: ' + bus1 + ', bus2: ' + bus2 + ', bus3: ' + bus3 + '\n', flush=True)
+            logger.debug(f'\n*** WARNING: 3-winding, 3-phase PowerTransformerEnd transformers are not supported, xfmr: {xfmr_name}, bus1: {bus1}, bus2: {bus2}, bus3: {bus3}\n')
             # need to clear out the previous dictionary entries for this
             # 3-winding transformer so it isn't processed below
             Bus.pop(xfmr_name, None)
@@ -1750,7 +1750,7 @@ def fillYbusUniqueSwitches(bus1: str, bus2: str, Ybus: Dict):
     if bus2 not in Ybus:
         Ybus[bus2] = {}
     if bus2 in Ybus[bus1]:
-        logger.debug('    *** WARNING: Unexpected existing value found for Ybus[' + bus1 + '][' + bus2 + '] when filling switching equipment value\n', flush=True)
+        logger.debug('    *** WARNING: Unexpected existing value found for Ybus[' + bus1 + '][' + bus2 + '] when filling switching equipment value\n')
     Ybus[bus1][bus2] = Ybus[bus2][bus1] = complex(-500.0, 500.0)
 
 
@@ -1802,7 +1802,7 @@ def fillYbusOnlyAddShunts(bus: str, Yval: complex, Ybus: Dict):
     if Yval == 0j:
         return
     if bus not in Ybus or bus not in Ybus[bus]:
-        logger.debug('    *** WARNING: Existing value not found for Ybus[' + bus + '][' + bus + '] when adding shunt element model contribution\n', flush=True)
+        logger.debug('    *** WARNING: Existing value not found for Ybus[' + bus + '][' + bus + '] when adding shunt element model contribution\n')
         return
     Ybus[bus][bus] += Yval
 
