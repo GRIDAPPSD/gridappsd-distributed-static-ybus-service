@@ -4,14 +4,32 @@ version = "0.1.0"
 description = ""
 authors = ["afisher1 <andrew.fisher@pnnl.gov>"]
 readme = "README.md"
-packages = [{include = "gridappsd_distributed_static_ybus_service"}]
+packages = [{include = "dsys"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 numpy = "^1.24.3"
 gridappsd-field-bus = "^2023.5.1a9"
 
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.3.2"
+yapf = "^0.32.0"
+mypy = "^1.3.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.yapfignore]
+ignore_patterns = [
+    ".venv/**",
+    ".pytest_cache/**",
+    "dist/**",
+    "docs/**"
+]
+
+[tool.yapf]
+based_on_style = "pep8"
+spaces_before_comment = 4
+column_limit = 99
+split_before_logical_operator = true
