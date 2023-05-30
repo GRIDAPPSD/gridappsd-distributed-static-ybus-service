@@ -26,9 +26,10 @@ cim_profile = CIM_PROFILE.RC4_2021.value
 agents_mod.set_cim_profile(cim_profile)
 cim = agents_mod.cim
 logging.basicConfig(format='%(asctime)s::%(levelname)s::%(name)s::%(filename)s::%(lineno)d::%(message)s',
-                    filename='DistributedYBus.log'
-                    filemode='w'
-                    level=logging.DEBUG)
+                    filename='DistributedYBus.log',
+                    filemode='w',
+                    level=logging.DEBUG,
+                    encoding='utf-8')
 logger = logging.getLogger(__name__)
 
 
@@ -45,35 +46,44 @@ class FeederAgentLevelStaticYbusService(FeederAgent):
         self.isYbusInitialized = False
 
     def testYbusQueries(self):
-        if not self.isYbusInitialized:
-            utils.initializeCimProfile(self.feeder_area)
-        rv = utils.perLengthPhaseImpedanceLineConfigs(self.feeder_area)
-        rv = utils.perLengthPhaseImpedanceLineNames(self.feeder_area)
-        rv = utils.perLengthSequenceImpedanceLineConfigs(self.feeder_area)
-        rv = utils.perLengthSequenceImpedanceLineNames(self.feeder_area)
-        rv = utils.acLineSegmentLineNames(self.feeder_area)
-        rv = utils.wireInfoSpacing(self.feeder_area)
-        rv = utils.wireInfoOverhead(self.feeder_area)
-        rv = utils.wireInfoConcentricNeutral(self.feeder_area)
-        rv = utils.wireInfoTapeShield(self.feeder_area)
-        rv = utils.wireInfoLineNames(self.feeder_area)
-        rv = utils.powerTransformerEndXfmrImpedances(self.feeder_area)
-        rv = utils.powerTransformerEndXfmrNames(self.feeder_area)
-        rv = utils.transformerTankXfmrRated(self.feeder_area)
-        rv = utils.transformerTankXfmrSct(self.feeder_area)
-        rv = utils.transformerTankXfmrNames(self.feeder_area)
-        rv = utils.switchingEquipmentSwitchNames(self.feeder_area)
-        rv = utils.shuntElementCapNames(self.feeder_area)
-        rv = utils.transformerTankXfmrNlt(self.feeder_area)
-        rv = utils.powerTransformerEndXfmrAdmittances(self.feeder_area)
+        if self.feeder_area is not None:
+            if not self.isYbusInitialized:
+                utils.initializeCimProfile(self.feeder_area)
+            rv = utils.perLengthPhaseImpedanceLineConfigs(self.feeder_area)
+            rv = utils.perLengthPhaseImpedanceLineNames(self.feeder_area)
+            rv = utils.perLengthSequenceImpedanceLineConfigs(self.feeder_area)
+            rv = utils.perLengthSequenceImpedanceLineNames(self.feeder_area)
+            rv = utils.acLineSegmentLineNames(self.feeder_area)
+            rv = utils.wireInfoSpacing(self.feeder_area)
+            rv = utils.wireInfoOverhead(self.feeder_area)
+            rv = utils.wireInfoConcentricNeutral(self.feeder_area)
+            rv = utils.wireInfoTapeShield(self.feeder_area)
+            rv = utils.wireInfoLineNames(self.feeder_area)
+            rv = utils.powerTransformerEndXfmrImpedances(self.feeder_area)
+            rv = utils.powerTransformerEndXfmrNames(self.feeder_area)
+            rv = utils.transformerTankXfmrRated(self.feeder_area)
+            rv = utils.transformerTankXfmrSct(self.feeder_area)
+            rv = utils.transformerTankXfmrNames(self.feeder_area)
+            rv = utils.switchingEquipmentSwitchNames(self.feeder_area)
+            rv = utils.shuntElementCapNames(self.feeder_area)
+            rv = utils.transformerTankXfmrNlt(self.feeder_area)
+            rv = utils.powerTransformerEndXfmrAdmittances(self.feeder_area)
+        else:
+            logger.error(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s feeder_area None. The service is malformed.")
+            raise RuntimeError(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s feeder_area None. The service is malformed.")
 
     def updateYbusService(self):
-        utils.initializeCimProfile(self.feeder_area)
-        self.ybus = utils.calculateYbus(self.feeder_area)
-        self.isYbusInitialized = True
-        logger.debug(
-            f"The Ybus for feederStaticYbusService in area id {self.feeder_area.feeder.mRID} is:\n{json.dumps(self.ybus, indent=4, sort_keys=True, cls=utils.ComplexEncoder)}"
-        )
+        if self.feeder_area is not None:
+            utils.initializeCimProfile(self.feeder_area)
+            self.ybus = utils.calculateYbus(self.feeder_area)
+            self.isYbusInitialized = True
+            logger.debug(
+                f"The Ybus for feederStaticYbusService in area id {self.feeder_area.feeder.mRID} is:\n{json.dumps(self.ybus, indent=4, sort_keys=True, cls=utils.ComplexEncoder)}"
+            )
+        else:
+            logger.error(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s feeder_area None. The service is malformed.")
+            raise RuntimeError(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s feeder_area None. The service is malformed.")
+        
 
     def on_request(self, message_bus: FieldMessageBus, headers: Dict, message: Dict):
         if message.get("requestType", "") == "LocalYbus":
@@ -95,35 +105,43 @@ class SwitchAreaAgentLevelStaticYbusService(SwitchAreaAgent):
         self.isYbusInitialized = False
 
     def testYbusQueries(self):
-        if not self.isYbusInitialized:
-            utils.initializeCimProfile(self.switch_area)
-        rv = utils.perLengthPhaseImpedanceLineConfigs(self.switch_area)
-        rv = utils.perLengthPhaseImpedanceLineNames(self.switch_area)
-        rv = utils.perLengthSequenceImpedanceLineConfigs(self.switch_area)
-        rv = utils.perLengthSequenceImpedanceLineNames(self.switch_area)
-        rv = utils.acLineSegmentLineNames(self.switch_area)
-        rv = utils.wireInfoSpacing(self.switch_area)
-        rv = utils.wireInfoOverhead(self.switch_area)
-        rv = utils.wireInfoConcentricNeutral(self.switch_area)
-        rv = utils.wireInfoTapeShield(self.switch_area)
-        rv = utils.wireInfoLineNames(self.switch_area)
-        rv = utils.powerTransformerEndXfmrImpedances(self.switch_area)
-        rv = utils.powerTransformerEndXfmrNames(self.switch_area)
-        rv = utils.transformerTankXfmrRated(self.switch_area)
-        rv = utils.transformerTankXfmrSct(self.switch_area)
-        rv = utils.transformerTankXfmrNames(self.switch_area)
-        rv = utils.switchingEquipmentSwitchNames(self.switch_area)
-        rv = utils.shuntElementCapNames(self.switch_area)
-        rv = utils.transformerTankXfmrNlt(self.switch_area)
-        rv = utils.powerTransformerEndXfmrAdmittances(self.switch_area)
+        if self.switch_area is not None:
+            if not self.isYbusInitialized:
+                utils.initializeCimProfile(self.switch_area)
+            rv = utils.perLengthPhaseImpedanceLineConfigs(self.switch_area)
+            rv = utils.perLengthPhaseImpedanceLineNames(self.switch_area)
+            rv = utils.perLengthSequenceImpedanceLineConfigs(self.switch_area)
+            rv = utils.perLengthSequenceImpedanceLineNames(self.switch_area)
+            rv = utils.acLineSegmentLineNames(self.switch_area)
+            rv = utils.wireInfoSpacing(self.switch_area)
+            rv = utils.wireInfoOverhead(self.switch_area)
+            rv = utils.wireInfoConcentricNeutral(self.switch_area)
+            rv = utils.wireInfoTapeShield(self.switch_area)
+            rv = utils.wireInfoLineNames(self.switch_area)
+            rv = utils.powerTransformerEndXfmrImpedances(self.switch_area)
+            rv = utils.powerTransformerEndXfmrNames(self.switch_area)
+            rv = utils.transformerTankXfmrRated(self.switch_area)
+            rv = utils.transformerTankXfmrSct(self.switch_area)
+            rv = utils.transformerTankXfmrNames(self.switch_area)
+            rv = utils.switchingEquipmentSwitchNames(self.switch_area)
+            rv = utils.shuntElementCapNames(self.switch_area)
+            rv = utils.transformerTankXfmrNlt(self.switch_area)
+            rv = utils.powerTransformerEndXfmrAdmittances(self.switch_area)
+        else:
+            logger.error(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s switch_area None. The service is malformed.")
+            raise RuntimeError(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s switch_area None. The service is malformed.")
 
     def updateYbusService(self):
-        utils.initializeCimProfile(self.switch_area)
-        self.ybus = utils.calculateYbus(self.switch_area)
-        self.isYbusInitialized = True
-        logger.debug(
-            f"The Ybus for SwitchAreaYbusService in area id {self.switch_area.area_id} is:\n{json.dumps(self.ybus, indent=4, sort_keys=True, cls=utils.ComplexEncoder)}"
-        )
+        if self.switch_area is not None:
+            utils.initializeCimProfile(self.switch_area)
+            self.ybus = utils.calculateYbus(self.switch_area)
+            self.isYbusInitialized = True
+            logger.debug(
+                f"The Ybus for SwitchAreaYbusService in area id {self.switch_area.area_id} is:\n{json.dumps(self.ybus, indent=4, sort_keys=True, cls=utils.ComplexEncoder)}"
+            )
+        else:
+            logger.error(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s switch_area None. The service is malformed.")
+            raise RuntimeError(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s switch_area None. The service is malformed.")
 
     def on_request(self, message_bus: FieldMessageBus, headers: Dict, message: Dict):
         if message.get("requestType", "") == "LocalYbus":
@@ -145,35 +163,43 @@ class SecondaryAreaAgentLevelStaticYbusService(SecondaryAreaAgent):
         self.isYbusInitialized = False
 
     def testYbusQueries(self):
-        if not self.isYbusInitialized:
-            utils.initializeCimProfile(self.secondary_area)
-        rv = utils.perLengthPhaseImpedanceLineConfigs(self.secondary_area)
-        rv = utils.perLengthPhaseImpedanceLineNames(self.secondary_area)
-        rv = utils.perLengthSequenceImpedanceLineConfigs(self.secondary_area)
-        rv = utils.perLengthSequenceImpedanceLineNames(self.secondary_area)
-        rv = utils.acLineSegmentLineNames(self.secondary_area)
-        rv = utils.wireInfoSpacing(self.secondary_area)
-        rv = utils.wireInfoOverhead(self.secondary_area)
-        rv = utils.wireInfoConcentricNeutral(self.secondary_area)
-        rv = utils.wireInfoTapeShield(self.secondary_area)
-        rv = utils.wireInfoLineNames(self.secondary_area)
-        rv = utils.powerTransformerEndXfmrImpedances(self.secondary_area)
-        rv = utils.powerTransformerEndXfmrNames(self.secondary_area)
-        rv = utils.transformerTankXfmrRated(self.secondary_area)
-        rv = utils.transformerTankXfmrSct(self.secondary_area)
-        rv = utils.transformerTankXfmrNames(self.secondary_area)
-        rv = utils.switchingEquipmentSwitchNames(self.secondary_area)
-        rv = utils.shuntElementCapNames(self.secondary_area)
-        rv = utils.transformerTankXfmrNlt(self.secondary_area)
-        rv = utils.powerTransformerEndXfmrAdmittances(self.secondary_area)
+        if self.secondary_area is not None:
+            if not self.isYbusInitialized:
+                utils.initializeCimProfile(self.secondary_area)
+            rv = utils.perLengthPhaseImpedanceLineConfigs(self.secondary_area)
+            rv = utils.perLengthPhaseImpedanceLineNames(self.secondary_area)
+            rv = utils.perLengthSequenceImpedanceLineConfigs(self.secondary_area)
+            rv = utils.perLengthSequenceImpedanceLineNames(self.secondary_area)
+            rv = utils.acLineSegmentLineNames(self.secondary_area)
+            rv = utils.wireInfoSpacing(self.secondary_area)
+            rv = utils.wireInfoOverhead(self.secondary_area)
+            rv = utils.wireInfoConcentricNeutral(self.secondary_area)
+            rv = utils.wireInfoTapeShield(self.secondary_area)
+            rv = utils.wireInfoLineNames(self.secondary_area)
+            rv = utils.powerTransformerEndXfmrImpedances(self.secondary_area)
+            rv = utils.powerTransformerEndXfmrNames(self.secondary_area)
+            rv = utils.transformerTankXfmrRated(self.secondary_area)
+            rv = utils.transformerTankXfmrSct(self.secondary_area)
+            rv = utils.transformerTankXfmrNames(self.secondary_area)
+            rv = utils.switchingEquipmentSwitchNames(self.secondary_area)
+            rv = utils.shuntElementCapNames(self.secondary_area)
+            rv = utils.transformerTankXfmrNlt(self.secondary_area)
+            rv = utils.powerTransformerEndXfmrAdmittances(self.secondary_area)
+        else:
+            logger.error(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s secondary_area None. The service is malformed.")
+            raise RuntimeError(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s secondary_area None. The service is malformed.")
 
     def updateYbusService(self):
-        utils.initializeCimProfile(self.secondary_area)
-        self.ybus = utils.calculateYbus(self.secondary_area)
-        self.isYbusInitialized = True
-        logger.debug(
-            f"The Ybus for SecondaryAreaYbusService in area id {self.secondary_area.area_id} is:\n{json.dumps(self.ybus, indent=4, sort_keys=True, cls=utils.ComplexEncoder)}"
-        )
+        if self.secondary_area is not None:
+            utils.initializeCimProfile(self.secondary_area)
+            self.ybus = utils.calculateYbus(self.secondary_area)
+            self.isYbusInitialized = True
+            logger.debug(
+                f"The Ybus for SecondaryAreaYbusService in area id {self.secondary_area.area_id} is:\n{json.dumps(self.ybus, indent=4, sort_keys=True, cls=utils.ComplexEncoder)}"
+            )
+        else:
+            logger.error(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s secondary_area None. The service is malformed.")
+            raise RuntimeError(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s secondary_area None. The service is malformed.")
 
     def on_request(self, message_bus: FieldMessageBus, headers: Dict, message: Dict):
         if message.get("requestType", "") == "LocalYbus":
@@ -182,16 +208,17 @@ class SecondaryAreaAgentLevelStaticYbusService(SecondaryAreaAgent):
             message_bus.send(headers.get('reply-to'), self.ybus)
 
 
-def main(systemMessageBusConfigFile: str,
-         feederMessageBusConfigFile: str,
-         switchAreaMessageBusConfigFiles: List[str],
-         secondaryAreaMessageBusConfigFiles: List[str],
-         simulationId: str = ""):
-    if not isinstance(systemMessageBusConfigFile, str) or not systemMessageBusConfigFile:
+def main(**kwargs):
+    systemMessageBusConfigFile = kwargs.get("system_bus_config_file")
+    feederMessageBusConfigFile = kwargs.get("feeder_bus_config_file")
+    switchAreaMessageBusConfigFiles = kwargs.get("switch_bus_config_files")
+    secondaryAreaMessageBusConfigFiles = kwargs.get("secondary_bus_config_files")
+    simulationId = kwargs.get("simulation_id")
+    if (not isinstance(systemMessageBusConfigFile, str) or not systemMessageBusConfigFile) and systemMessageBusConfigFile is not None:
         raise ValueError(
             f"systemMessageBusConfigFile is an invalid type or an empty string.\nsystemMessageBusConfigFile = {systemMessageBusConfigFile}"
         )
-    if not isinstance(feederMessageBusConfigFile, str) or not feederMessageBusConfigFile:
+    if (not isinstance(feederMessageBusConfigFile, str) or not feederMessageBusConfigFile) and feederMessageBusConfigFile is not None:
         raise ValueError(
             f"feederMessageBusConfigFile is an invalid type or an empty string.\nfeederMessageBusConfigFile = {feederMessageBusConfigFile}"
         )
@@ -221,67 +248,64 @@ def main(systemMessageBusConfigFile: str,
     }
     runningYbusServiceInfo = []
     runningServiceInstances = []
-    systemMessageBusDef = MessageBusDefinition.load(systemMessageBusConfigFile)
-    feederMessageBusDef = MessageBusDefinition.load(feederMessageBusConfigFile)
-    feederYbusService = FeederAgentLevelStaticYbusService(systemMessageBusDef, feederMessageBusDef,
-                                                          serviceMetadata, None, simulationId)
-    feederYbusService.connect()
-    runningYbusServiceInfo.append(
-        f"{type(feederYbusService).__name__}:{feederYbusService.feeder_area.feeder.mRID}")
-    runningServiceInstances.append(feederYbusService)
-    #    feederYbusService.testYbusQueries()
-    feederYbusService.updateYbusService()
-
-    switchAreaMessageBusIds = {}
-    secondaryAreaMessageBusIds = {}
-    for i in switchAreaMessageBusConfigFiles:
-        with open(i, 'r') as configFile:
-            config = yaml.load(configFile, Loader=yaml.FullLoader)
-            switchAreaMessageBusIds[config.get("connections", {}).get("id")] = i
-    for i in secondaryAreaMessageBusConfigFiles:
-        with open(i, 'r') as configFile:
-            config = yaml.load(configFile, Loader=yaml.FullLoader)
-            secondaryAreaMessageBusIds[config.get("connections", {}).get("id")] = i
-    for switchArea in feederYbusService.agent_area_dict.get("switch_areas", {}):    # type: ignore
-        if switchArea.get("message_bus_id", "") in switchAreaMessageBusIds.keys():
-            switchAreaMessageBusDef = MessageBusDefinition.load(
-                switchAreaMessageBusIds.get(switchArea["message_bus_id"]))
-            switchAreaService = SwitchAreaAgentLevelStaticYbusService(
-                feederMessageBusDef, switchAreaMessageBusDef, serviceMetadata, switchArea,
-                simulationId)
-            switchAreaService.connect()
-            runningYbusServiceInfo.append(
-                f"{type(switchAreaService).__name__}:{switchAreaService.switch_area.area_id}")
-            runningServiceInstances.append(switchAreaService)
-            #            switchAreaService.testYbusQueries()
-            switchAreaService.updateYbusService()
-            for secondaryArea in switchArea.get("secondary_areas", {}):
-                if secondaryArea["message_bus_id"] in secondaryAreaMessageBusIds.keys():
-                    secondaryAreaMessageBus = MessageBusDefinition.load(
-                        secondaryAreaMessageBusIds.get(secondaryArea["message_bus_id"]))
+    systemMessageBusDef = None
+    feederMessageBusDef = None
+    switchAreaMessageBusDefs = {}
+    if feederMessageBusConfigFile is not None and systemMessageBusConfigFile is not None:
+        systemMessageBusDef = MessageBusDefinition.load(systemMessageBusConfigFile)
+        feederMessageBusDef = MessageBusDefinition.load(feederMessageBusConfigFile)
+        feederYbusService = FeederAgentLevelStaticYbusService(systemMessageBusDef, feederMessageBusDef,
+                                                            serviceMetadata, None, simulationId)
+        feederYbusService.connect()
+        runningYbusServiceInfo.append(
+            f"{type(feederYbusService).__name__}:{feederMessageBusDef.id}")
+        runningServiceInstances.append(feederYbusService)
+#        feederYbusService.testYbusQueries()
+        feederYbusService.updateYbusService()
+    if len(switchAreaMessageBusConfigFiles) > 0 and feederMessageBusConfigFile is not None:
+        if feederMessageBusDef is None:
+            feederMessageBusDef = MessageBusDefinition.load(feederMessageBusConfigFile)
+        for switchConfigFile in switchAreaMessageBusConfigFiles:
+                switchAreaMessageBusDef = MessageBusDefinition.load(
+                    switchConfigFile)
+                switchAreaMessageBusDefs[switchAreaMessageBusDef.id] = switchAreaMessageBusDef
+                switchAreaService = SwitchAreaAgentLevelStaticYbusService(
+                    feederMessageBusDef, switchAreaMessageBusDef, serviceMetadata, None,
+                    simulationId)
+                switchAreaService.connect()
+                runningYbusServiceInfo.append(
+                    f"{type(switchAreaService).__name__}:{switchAreaMessageBusDef.id}")
+                runningServiceInstances.append(switchAreaService)
+#                switchAreaService.testYbusQueries()
+                switchAreaService.updateYbusService()
+    if len(secondaryAreaMessageBusConfigFiles) > 0 and len(switchAreaMessageBusConfigFiles) > 0:
+        if len(switchAreaMessageBusDefs) == 0:
+            for switchConfigFile in switchAreaMessageBusConfigFiles:
+                switchAreaMessageBusDef = MessageBusDefinition.load(switchConfigFile)
+                switchAreaMessageBusDefs[switchAreaMessageBusDef.id] = switchAreaMessageBusDef
+        for secondaryConfigFile in secondaryAreaMessageBusConfigFiles:
+                secondaryAreaMessageBusDef = MessageBusDefinition.load(secondaryConfigFile)
+                secondaryAreaIdSplit = secondaryAreaMessageBusDef.id.split(".")
+                switchAreaId = secondaryAreaIdSplit[0] + "." + secondaryAreaIdSplit[1]
+                switchAreaMessageBusDef = switchAreaMessageBusDefs.get(switchAreaId)
+                if switchAreaMessageBusDef is None:
+                    logger.error(f"There is a missing upstream switch bus configuration for area id:{switchAreaId}")
+                    raise RuntimeError(f"There is a missing upstream switch bus configuration for area id:{switchAreaId}")
+                else:
                     secondaryAreaService = SecondaryAreaAgentLevelStaticYbusService(
-                        switchAreaMessageBusDef, secondaryAreaMessageBus, serviceMetadata,
-                        secondaryArea, simulationId)
+                        switchAreaMessageBusDef, secondaryAreaMessageBusDef, serviceMetadata,
+                        None, simulationId)
                     secondaryAreaService.connect()
                     runningYbusServiceInfo.append(
-                        f"{type(secondaryAreaService).__name__}:{secondaryAreaService.secondary_area.area_id}"
+                        f"{type(secondaryAreaService).__name__}:{secondaryAreaMessageBusDef.id}"
                     )
                     runningServiceInstances.append(secondaryAreaService)
-
-                    #                    secondaryAreaService.testYbusQueries()
+#                    secondaryAreaService.testYbusQueries()
                     secondaryAreaService.updateYbusService()
-                else:
-                    raise ValueError(
-                        f"No secondary area message bus configuration file was given for secondary area: {secondaryArea['message_bus_id']}"
-                    )
-        else:
-            raise ValueError(
-                f"No switch area message bus configuration file was given for switch area: {switchArea['message_bus_id']}"
-            )
     servicesAreRunning = True
     while servicesAreRunning:
         try:
-            for service in runningServiceInstance:
+            for service in runningServiceInstances:
                 #TODO: check to see if service instance is still running
                 servicesAreRunning = True
         except KeyboardInterrupt:
@@ -294,32 +318,45 @@ def main(systemMessageBusConfigFile: str,
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("-s", "--simulation_id", help="The simulation id to operate with.")
-    parser.add_argument("system_bus_config_file",
-                        help="The full path to the system bus configuration file.")
-    parser.add_argument("feeder_bus_config_file",
-                        help="The full path to the feeder bus configuration file.")
-    parser.add_argument("switch_bus_config_files_dir",
-                        help="The directory containing the switch bus configuration file.")
-    parser.add_argument("secondary_bus_config_files_dir",
-                        help="The directory containing the switch bus configuration file.")
+    serviceConfigHelpStr = "Variable keyword arguments that provide user defined distributed area agent configuration files."
+    serviceConfigHelpStr += "\nValid keywords are as follows:"
+    serviceConfigHelpStr += "\n\tSYSTEM_BUS_CONFIG_FILE=<full path of the system bus configuration file>"
+    serviceConfigHelpStr += "/n/tFEEDER_BUS_CONFIG_FILE=<full path of the feeder bus configuration file>"
+    serviceConfigHelpStr += "/n/tSWITCH_BUS_CONFIG_FILE_DIR=<full path to the directory containing the switch bus configuration file(s)>"
+    serviceConfigHelpStr += "/n/tSECONDARY_BUS_CONFIG_FILE_DIR=<full path to the directory containing the secondary bus configuration file(s)>"
+    serviceConfigHelpStr += "/n/tSIMULATION_ID=<simulation id>"
+    parser.add_argument("service_configurations", nargs="+", help=serviceConfigHelpStr)
     args = parser.parse_args()
-    simID = ""
     switchBusConfigFiles = []
     secondaryBusConfigFiles = []
-    if args.simulation_id is not None:
-        simID = args.simulation_id
-    if args.switch_bus_config_files_dir is not None:
-        for file in os.listdir(args.switch_bus_config_files_dir):
+    validKeywords = ["SYSTEM_BUS_CONFIG_FILE", "FEEDER_BUS_CONFIG_FILE", "SWITCH_BUS_CONFIG_FILE_DIR", "SECONDARY_BUS_CONFIG_FILE_DIR","SIMULATION_ID"]
+    mainArgs = {}
+    for arg in args.service_configurations:
+        argSplit = arg.split("=", maxsplit=1)
+        if argSplit[0] in validKeywords:
+            mainArgs[argSplit[0]] = argSplit[1]
+        else:
+            logger.error(f"Invalid keyword argument, {argSplit[0]}, was given by the user. Valid keywords are {validKeywords}.")
+            raise RuntimeError(f"Invalid keyword argument, {argSplit[0]}, was given by the user. Valid keywords are {validKeywords}.")
+    if len(mainArgs) == 0:
+        logger.error(f"No arguments were provided by the user. Valid keywords are {validKeywords}.")
+        raise RuntimeError(f"No arguments were provided by the user. Valid keywords are {validKeywords}.")
+    simID = mainArgs.get("SIMULATION_ID")
+    systemBusConfigFile = mainArgs.get("SYSTEM_BUS_CONFIG")
+    feederBusConfigFile = mainArgs.get("FEEDER_BUS_CONFIG_FILE")
+    switchBusConfigFileDir = mainArgs.get("SWITCH_BUS_CONFIG_FILE_DIR")
+    secondaryBusConfigFileDir = mainArgs.get("SECONDARY_BUS_CONFIG_FILE_DIR")
+    if switchBusConfigFileDir is not None:
+        for file in os.listdir(switchBusConfigFileDir):
             if file.endswith(".yml"):
-                switchBusConfigFiles.append(os.path.join(args.switch_bus_config_files_dir, file))
-    if args.secondary_bus_config_files_dir is not None:
-        for file in os.listdir(args.secondary_bus_config_files_dir):
+                switchBusConfigFiles.append(os.path.join(switchBusConfigFileDir, file))
+    if secondaryBusConfigFileDir is not None:
+        for file in os.listdir(secondaryBusConfigFileDir):
             if file.endswith(".yml"):
                 secondaryBusConfigFiles.append(
-                    os.path.join(args.secondary_bus_config_files_dir, file))
-    main(args.system_bus_config_file, args.feeder_bus_config_file, switchBusConfigFiles,
-         secondaryBusConfigFiles, simID)
-    for h in logger.handlers:
-        h.close()
-        logger.removeHandler(h)
+                    os.path.join(secondaryBusConfigFileDir, file))
+    main(system_bus_config_file=systemBusConfigFile, 
+         feeder_bus_config_file=feederBusConfigFile, 
+         switch_bus_config_files=switchBusConfigFiles, 
+         secondary_bus_config_files=secondaryBusConfigFiles, 
+         simulation_id=simID)

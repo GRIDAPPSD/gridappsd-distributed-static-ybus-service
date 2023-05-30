@@ -954,8 +954,7 @@ def fillYbusUnique(bus1: str, bus2: str, Yval: float, Ybus: Dict):
     if bus2 not in Ybus:
         Ybus[bus2] = {}
     if bus2 in Ybus[bus1]:
-        logger.debug('    *** WARNING: Unexpected existing value found for Ybus[' + bus1 + '][' +
-                     bus2 + '] when filling model value\n')
+        logger.warn(f'Unexpected existing value found for Ybus[{bus1}][{bus2}] when filling model value')
     Ybus[bus1][bus2] = Ybus[bus2][bus1] = Yval
 
 
@@ -981,8 +980,7 @@ def fillYbusUniqueUpperLines(bus1: str, bus2: str, Yval: float, Ybus: Dict):
     if bus2 not in Ybus:
         Ybus[bus2] = {}
     if bus2 in Ybus[bus1]:
-        logger.debug('    *** WARNING: Unexpected existing value found for Ybus[' + bus1 + '][' +
-                     bus2 + '] when filling line model value\n')
+        logger.warn('Unexpected existing value found for Ybus[{bus1}][{bus2}] when filling line model value')
     # extract the node and phase from bus1 and bus2
     node1, phase1 = bus1.split('.')
     node2, phase2 = bus2.split('.')
@@ -1786,8 +1784,8 @@ def fillYbusPowerTransformerEndXfmrs(distributedArea: DistributedModel | SwitchA
             bus1 = Bus[xfmr_name][1]
             bus2 = Bus[xfmr_name][2]
             bus3 = obj['bus']['value'].upper()
-            logger.debug(
-                f'\n*** WARNING: 3-winding, 3-phase PowerTransformerEnd transformers are not supported, xfmr: {xfmr_name}, bus1: {bus1}, bus2: {bus2}, bus3: {bus3}\n'
+            logger.warn(
+                f'3-winding, 3-phase PowerTransformerEnd transformers are not supported, xfmr: {xfmr_name}, bus1: {bus1}, bus2: {bus2}, bus3: {bus3}'
             )
             # need to clear out the previous dictionary entries for this
             # 3-winding transformer so it isn't processed below
@@ -2081,8 +2079,7 @@ def fillYbusUniqueSwitches(bus1: str, bus2: str, Ybus: Dict):
     if bus2 not in Ybus:
         Ybus[bus2] = {}
     if bus2 in Ybus[bus1]:
-        logger.debug('    *** WARNING: Unexpected existing value found for Ybus[' + bus1 + '][' +
-                     bus2 + '] when filling switching equipment value\n')
+        logger.warn(f'Unexpected existing value found for Ybus[{bus1}][{bus2}] when filling switching equipment value')
     Ybus[bus1][bus2] = Ybus[bus2][bus1] = complex(-500.0, 500.0)
 
 
@@ -2136,8 +2133,7 @@ def fillYbusOnlyAddShunts(bus: str, Yval: complex, Ybus: Dict):
     if Yval == 0j:
         return
     if bus not in Ybus or bus not in Ybus[bus]:
-        logger.debug('    *** WARNING: Existing value not found for Ybus[' + bus + '][' + bus +
-                     '] when adding shunt element model contribution\n')
+        logger.warn(f'Existing value not found for Ybus[{bus}][{bus}] when adding shunt element model contribution')
         return
     Ybus[bus][bus] += Yval
 
@@ -2268,7 +2264,6 @@ def fillYbusShuntElementShunts(distributedArea: DistributedModel | SwitchArea | 
                     B_m = Ym
                 sum_shunt_imag += -B_m
         fillYbusOnlyAddShunts(node, complex(sum_shunt_real, sum_shunt_imag), Ybus)
-    logger.debug(f"RatedU_end:{json.dumps(RatedU_end,indent=4,sort_keys=True)}")
     for node in Xfmr_end_name:
         sum_shunt_imag = sum_shunt_real = 0.0
         bus = node.split('.')[0]
@@ -2296,45 +2291,50 @@ def countUniqueYbus(Ybus):
 
 def calculateYbus(distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> Dict:
     Ybus = {}
+    areaID = None
+    if isinstance(distributedArea, DistributedModel):
+        areaID = distributedArea.feeder.mRID
+    else:
+        areaID = distributedArea.area_id
     fillYbusPerLengthPhaseImpedanceLines(distributedArea, Ybus)
     logger.debug(
-        f"feederYbusService Ybus after fillYbusPerLengthPhaseImpedanceLines is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
+        f"Ybus for {areaID} after fillYbusPerLengthPhaseImpedanceLines is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
     )
     fillYbusPerLengthSequenceImpedanceLines(distributedArea, Ybus)
     logger.debug(
-        f"feederYbusService Ybus after fillYbusPerLengthSequenceImpedanceLines is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
+        f"Ybus for {areaID} after fillYbusPerLengthSequenceImpedanceLines is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
     )
     fillYbusACLineSegmentLines(distributedArea, Ybus)
     logger.debug(
-        f"feederYbusService Ybus after fillYbusACLineSegmentLines is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
+        f"Ybus for {areaID} after fillYbusACLineSegmentLines is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
     )
     fillYbusWireInfoAndWireSpacingInfoLines(distributedArea, Ybus)
     logger.debug(
-        f"feederYbusService Ybus after fillYbusWireInfoAndWireSpacingInfoLines is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
+        f"Ybus for {areaID} after fillYbusWireInfoAndWireSpacingInfoLines is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
     )
     line_count = countUniqueYbus(Ybus)
-    logger.debug('\nLine_model # entries: ' + str(line_count))
+    logger.debug(f'Line_model # entries: {line_count}')
     fillYbusPowerTransformerEndXfmrs(distributedArea, Ybus)
     logger.debug(
-        f"feederYbusService Ybus after fillYbusPowerTransformerEndXfmrs is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
+        f"Ybus for {areaID} after fillYbusPowerTransformerEndXfmrs is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
     )
     fillYbusTransformerTankXfmrs(distributedArea, Ybus)
     logger.debug(
-        f"feederYbusService Ybus after fillYbusTransformerTankXfmrs is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
+        f"Ybus for {areaID} after fillYbusTransformerTankXfmrs is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
     )
     count = countUniqueYbus(Ybus)
     xfmr_count = count - line_count
-    logger.debug('\nPower_transformer # entries: ' + str(xfmr_count))
+    logger.debug(f'Power_transformer # entries: {xfmr_count}')
     fillYbusSwitchingEquipmentSwitches(distributedArea, Ybus)
     logger.debug(
-        f"feederYbusService Ybus after fillYbusSwitchingEquipmentSwitches is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
+        f"Ybus for {areaID} after fillYbusSwitchingEquipmentSwitches is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
     )
     count = countUniqueYbus(Ybus)
     switch_count = count - line_count - xfmr_count
-    logger.debug('\nSwitching_equipment # entries: ' + str(switch_count))
+    logger.debug(f'Switching_equipment # entries: {switch_count}')
     fillYbusShuntElementShunts(distributedArea, Ybus)
     logger.debug(
-        f"feederYbusService Ybus after fillYbusShuntElementShunts is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
+        f"Ybus for {areaID} after fillYbusShuntElementShunts is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
     )
-    logger.debug('\nShunt_element contributions added (no new entries)')
+    logger.debug('Shunt_element contributions added (no new entries)')
     return Ybus
