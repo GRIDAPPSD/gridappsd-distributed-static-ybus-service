@@ -69,7 +69,6 @@ def initializeCimProfile(distributedArea: DistributedModel | SwitchArea | Second
     distributedArea.get_all_attributes(cim.TransformerTankEnd)
     distributedArea.get_all_attributes(cim.SwitchPhase)
     distributedArea.get_all_attributes(cim.LinearShuntCompensatorPhase)
-    distributedArea.get_all_attributes(cim.RegulatingControl)
     distributedArea.get_all_attributes(cim.Terminal)
     distributedArea.get_all_attributes(cim.BaseVoltage)
     distributedArea.get_all_attributes(cim.WirePosition)
@@ -314,14 +313,20 @@ def wireInfoSpacing(distributedArea: DistributedModel | SwitchArea | SecondaryAr
         distributedAreaID = distributedArea.area_id
     logger.debug(f"performing wireInfoSpacing query for distributed area: {distributedAreaID}")
     acLineSegments = distributedArea.typed_catalog.get(cim.ACLineSegment, {})
+    wireSpacingInfos = distributedArea.typed_catalog.get(cim.WireSpacingInfo, {})
     desiredInfo = {}
-    for line in acLineSegments.values():
-        if line.WireSpacingInfo != None:    # type: ignore
-            for p in line.WireSpacingInfo.WirePositions:    # type: ignore
+    for wireSpacingInfo in wireSpacingInfos.values():
+        infoIsValid = False
+        for line in wireSpacingInfo.ACLineSegments:
+            if line.mRID in acLineSegments.keys():
+                infoIsValid = True
+                break
+        if infoIsValid:
+            for p in wireSpacingInfo.WirePositions:    # type: ignore
                 desiredInfo["wire_spacing_info"] = {
-                    "value": line.WireSpacingInfo.name
+                    "value": wireSpacingInfo.name
                 }    # type: ignore
-                desiredInfo["cable"] = {"value": line.WireSpacingInfo.isCable}    # type: ignore
+                desiredInfo["cable"] = {"value": wireSpacingInfo.isCable}    # type: ignore
                 desiredInfo["seq"] = {"value": p.sequenceNumber}
                 desiredInfo["xCoord"] = {"value": p.xCoord}
                 desiredInfo["yCoord"] = {"value": p.yCoord}
@@ -333,7 +338,7 @@ def wireInfoSpacing(distributedArea: DistributedModel | SwitchArea | SecondaryAr
                         nullAttributes.append(i)
                 if len(nullAttributes) > 0:
                     logger.debug(
-                        f"wireInfoSpacing():ACLineSegment:{line.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
+                        f"wireInfoSpacing():WireSpacingInfo:{wireSpacingInfo.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
                     )
                     nullAttributes.clear()
                 if len(desiredInfo) > 0 and not dictContainsNone:
@@ -351,28 +356,36 @@ def wireInfoOverhead(distributedArea: DistributedModel | SwitchArea | SecondaryA
         distributedAreaID = distributedArea.area_id
     logger.debug(f"performing wireInfoOverhead query for distributed area: {distributedAreaID}")
     acLineSegments = distributedArea.typed_catalog.get(cim.ACLineSegment, {})
+    overheadWireInfos = distributedArea.typed_catalog.get(cim.OverheadWireInfo,{})
     desiredInfo = {}
-    for line in acLineSegments.values():
-        for acLineSegmentPhase in line.ACLineSegmentPhases:    # type: ignore
-            if isinstance(acLineSegmentPhase.WireInfo, cim.OverheadWireInfo):
-                overheadWireInfo = acLineSegmentPhase.WireInfo
-                desiredInfo["wire_cn_ts"] = {"value": overheadWireInfo.name}
-                desiredInfo["gmr"] = {"value": overheadWireInfo.gmr}
-                desiredInfo["r25"] = {"value": overheadWireInfo.rAC25}
-                dictContainsNone = False
-                nullAttributes = []
-                for i, v in desiredInfo.items():
-                    if v["value"] is None:
-                        dictContainsNone = True
-                        nullAttributes.append(i)
-                if len(nullAttributes) > 0:
-                    logger.debug(
-                        f"wireInfoOverhead():ACLineSegment:{line.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                    )
-                    nullAttributes.clear()
-                if len(desiredInfo) > 0 and not dictContainsNone:
-                    rv.append(copy.deepcopy(desiredInfo))
-                desiredInfo.clear()
+    for overheadWireInfo in overheadWireInfos.values():
+        infoIsValid = False
+        for line in acLineSegments.values():
+            for segmentPhase in line.ACLineSegmentPhases:
+                if isinstance(segmentPhase.WireInfo, cim.OverheadWireInfo):
+                    if overheadWireInfo.mRID == segmentPhase.WireInfo.mRID:
+                        infoIsValid = True
+                        break
+            if infoIsValid:
+                break
+        if infoIsValid:
+            desiredInfo["wire_cn_ts"] = {"value": overheadWireInfo.name}
+            desiredInfo["gmr"] = {"value": overheadWireInfo.gmr}
+            desiredInfo["r25"] = {"value": overheadWireInfo.rAC25}
+            dictContainsNone = False
+            nullAttributes = []
+            for i, v in desiredInfo.items():
+                if v["value"] is None:
+                    dictContainsNone = True
+                    nullAttributes.append(i)
+            if len(nullAttributes) > 0:
+                logger.debug(
+                    f"wireInfoOverhead():ACLineSegment:{line.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
+                )
+                nullAttributes.clear()
+            if len(desiredInfo) > 0 and not dictContainsNone:
+                rv.append(copy.deepcopy(desiredInfo))
+            desiredInfo.clear()
     logger.debug(f'wireInfoOverhead returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
@@ -387,39 +400,47 @@ def wireInfoConcentricNeutral(
     logger.debug(
         f"performing wireInfoConcentricNeutral query for distributed area: {distributedAreaID}")
     acLineSegments = distributedArea.typed_catalog.get(cim.ACLineSegment, {})
+    concentricNeutralWireInfos = distributedArea.typed_catalog.get(cim.ConcentricNeutralCableInfo,{})
     desiredInfo = {}
-    for line in acLineSegments.values():
-        for acLineSegmentPhase in line.ACLineSegmentPhases:    # type: ignore
-            if isinstance(acLineSegmentPhase.WireInfo, cim.ConcentricNeutralCableInfo):
-                concentricNeutralWireInfo = acLineSegmentPhase.WireInfo
-                desiredInfo["wire_cn_ts"] = {"value": concentricNeutralWireInfo.name}
-                desiredInfo["gmr"] = {"value": concentricNeutralWireInfo.gmr}
-                desiredInfo["r25"] = {"value": concentricNeutralWireInfo.rAC25}
-                desiredInfo["diameter_jacket"] = {
-                    "value": concentricNeutralWireInfo.diameterJacket
-                }
-                desiredInfo["strand_count"] = {
-                    "value": concentricNeutralWireInfo.neutralStrandCount
-                }
-                desiredInfo["strand_radius"] = {
-                    "value": concentricNeutralWireInfo.neutralStrandRadius
-                }
-                desiredInfo["strand_gmr"] = {"value": concentricNeutralWireInfo.neutralStrandGmr}
-                desiredInfo["strand_rdc"] = {"value": concentricNeutralWireInfo.neutralStrandRDC20}
-                dictContainsNone = False
-                nullAttributes = []
-                for i, v in desiredInfo.items():
-                    if v["value"] is None:
-                        dictContainsNone = True
-                        nullAttributes.append(i)
-                if len(nullAttributes) > 0:
-                    logger.debug(
-                        f"wireInfoConcentricNeutral():ACLineSegment:{line.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                    )
-                    nullAttributes.clear()
-                if len(desiredInfo) > 0 and not dictContainsNone:
-                    rv.append(copy.deepcopy(desiredInfo))
-                desiredInfo.clear()
+    for concentricNeutralWireInfo in concentricNeutralWireInfos.values():
+        infoIsValid = False
+        for line in acLineSegments.values():
+            for segmentPhase in line.ACLineSegmentPhases:
+                if isinstance(segmentPhase.WireInfo, cim.ConcentricNeutralCableInfo):
+                    if concentricNeutralWireInfo.mRID == segmentPhase.WireInfo.mRID:
+                        infoIsValid = True
+                        break
+            if infoIsValid:
+                break
+        if infoIsValid:
+            desiredInfo["wire_cn_ts"] = {"value": concentricNeutralWireInfo.name}
+            desiredInfo["gmr"] = {"value": concentricNeutralWireInfo.gmr}
+            desiredInfo["r25"] = {"value": concentricNeutralWireInfo.rAC25}
+            desiredInfo["diameter_jacket"] = {
+                "value": concentricNeutralWireInfo.diameterOverJacket
+            }
+            desiredInfo["strand_count"] = {
+                "value": concentricNeutralWireInfo.neutralStrandCount
+            }
+            desiredInfo["strand_radius"] = {
+                "value": concentricNeutralWireInfo.neutralStrandRadius
+            }
+            desiredInfo["strand_gmr"] = {"value": concentricNeutralWireInfo.neutralStrandGmr}
+            desiredInfo["strand_rdc"] = {"value": concentricNeutralWireInfo.neutralStrandRDC20}
+            dictContainsNone = False
+            nullAttributes = []
+            for i, v in desiredInfo.items():
+                if v["value"] is None:
+                    dictContainsNone = True
+                    nullAttributes.append(i)
+            if len(nullAttributes) > 0:
+                logger.debug(
+                    f"wireInfoConcentricNeutral():ConcentricNeutralCableInfo:{concentricNeutralWireInfo.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
+                )
+                nullAttributes.clear()
+            if len(desiredInfo) > 0 and not dictContainsNone:
+                rv.append(copy.deepcopy(desiredInfo))
+            desiredInfo.clear()
     logger.debug(f'wireInfoConcentricNeutral returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
@@ -433,30 +454,38 @@ def wireInfoTapeShield(
         distributedAreaID = distributedArea.area_id
     logger.debug(f"performing wireInfoTapeShield query for distributed area: {distributedAreaID}")
     acLineSegments = distributedArea.typed_catalog.get(cim.ACLineSegment, {})
+    tapeShieldWireInfos = distributedArea.typed_catalog.get(cim.TapeShieldCableInfo,{})
     desiredInfo = {}
-    for line in acLineSegments.values():
-        for acLineSegmentPhase in line.ACLineSegmentPhases:    # type: ignore
-            if isinstance(acLineSegmentPhase.WireInfo, cim.TapeShieldCableInfo):
-                tapeShieldlWireInfo = acLineSegmentPhase.WireInfo
-                desiredInfo["wire_cn_ts"] = {"value": tapeShieldlWireInfo.name}
-                desiredInfo["gmr"] = {"value": tapeShieldlWireInfo.gmr}
-                desiredInfo["r25"] = {"value": tapeShieldlWireInfo.rAC25}
-                desiredInfo["diameter_screen"] = {"value": tapeShieldlWireInfo.diameterOverScreen}
-                desiredInfo["tapethickness"] = {"value": tapeShieldlWireInfo.tapeThickness}
-                dictContainsNone = False
-                nullAttributes = []
-                for i, v in desiredInfo.items():
-                    if v["value"] is None:
-                        dictContainsNone = True
-                        nullAttributes.append(i)
-                if len(nullAttributes) > 0:
-                    logger.debug(
-                        f"wireInfoTapeShield():ACLineSegment:{line.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                    )
-                    nullAttributes.clear()
-                if len(desiredInfo) > 0 and not dictContainsNone:
-                    rv.append(copy.deepcopy(desiredInfo))
-                desiredInfo.clear()
+    for tapeShieldWireInfo in tapeShieldWireInfos.values():
+        infoIsValid = False
+        for line in acLineSegments.values():
+            for segmentPhase in line.ACLineSegmentPhases:
+                if isinstance(segmentPhase.WireInfo, cim.TapeShieldCableInfo):
+                    if tapeShieldWireInfo.mRID == segmentPhase.WireInfo.mRID:
+                        infoIsValid = True
+                        break
+            if infoIsValid:
+                break
+        if infoIsValid:    # type: ignore
+            desiredInfo["wire_cn_ts"] = {"value": tapeShieldWireInfo.name}
+            desiredInfo["gmr"] = {"value": tapeShieldWireInfo.gmr}
+            desiredInfo["r25"] = {"value": tapeShieldWireInfo.rAC25}
+            desiredInfo["diameter_screen"] = {"value": tapeShieldWireInfo.diameterOverScreen}
+            desiredInfo["tapethickness"] = {"value": tapeShieldWireInfo.tapeThickness}
+            dictContainsNone = False
+            nullAttributes = []
+            for i, v in desiredInfo.items():
+                if v["value"] is None:
+                    dictContainsNone = True
+                    nullAttributes.append(i)
+            if len(nullAttributes) > 0:
+                logger.debug(
+                    f"wireInfoTapeShield():TapeShieldCableInfo:{tapeShieldWireInfo.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
+                )
+                nullAttributes.clear()
+            if len(desiredInfo) > 0 and not dictContainsNone:
+                rv.append(copy.deepcopy(desiredInfo))
+            desiredInfo.clear()
     logger.debug(f'wireInfoTapeShield returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
@@ -464,6 +493,7 @@ def wireInfoTapeShield(
 def wireInfoLineNames(
         distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
     rv = []
+    rvDict = {}
     if isinstance(distributedArea, DistributedModel):
         distributedAreaID = distributedArea.feeder.mRID
     else:
@@ -504,8 +534,14 @@ def wireInfoLineNames(
                 )
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
-                rv.append(copy.deepcopy(desiredInfo))
-            desiredInfo.clear()
+                if desiredInfo["line_name"]["value"] not in rvDict.keys():
+                    rvDict[desiredInfo["line_name"]["value"]] = {"A": None, "B": None, "C": None, "s1": None, "s2": None, "N": None}
+                rvDict[desiredInfo["line_name"]["value"]][desiredInfo["phase"]["value"]] = copy.deepcopy(desiredInfo)
+                desiredInfo.clear()
+    for k in rvDict.keys():
+        for phs in ["A","B","C","s1","s2","N"]:
+            if rvDict[k][phs] is not None:
+                rv.append(copy.deepcopy(rvDict[k][phs]))
     logger.debug(f'wireInfoLineNames returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
@@ -1346,8 +1382,9 @@ def fillYbusWireInfoAndWireSpacingInfoLines(distributedArea: DistributedModel | 
         wire_spacing_info = obj['wire_spacing_info']['value']
         cableFlag = obj['cable']['value'].upper() == 'TRUE'    # don't depend on lowercase
         seq = int(obj['seq']['value'])
-        if seq == 1:
+        if wire_spacing_info not in XCoord.keys():
             XCoord[wire_spacing_info] = {}
+        if wire_spacing_info not in YCoord.keys():
             YCoord[wire_spacing_info] = {}
         XCoord[wire_spacing_info][seq] = float(obj['xCoord']['value'])
         YCoord[wire_spacing_info][seq] = float(obj['yCoord']['value'])

@@ -341,10 +341,10 @@ if __name__ == "__main__":
     serviceConfigHelpStr = "Variable keyword arguments that provide user defined distributed area agent configuration files."
     serviceConfigHelpStr += "\nValid keywords are as follows:"
     serviceConfigHelpStr += "\n\tSYSTEM_BUS_CONFIG_FILE=<full path of the system bus configuration file>"
-    serviceConfigHelpStr += "/n/tFEEDER_BUS_CONFIG_FILE=<full path of the feeder bus configuration file>"
-    serviceConfigHelpStr += "/n/tSWITCH_BUS_CONFIG_FILE_DIR=<full path to the directory containing the switch bus configuration file(s)>"
-    serviceConfigHelpStr += "/n/tSECONDARY_BUS_CONFIG_FILE_DIR=<full path to the directory containing the secondary bus configuration file(s)>"
-    serviceConfigHelpStr += "/n/tSIMULATION_ID=<simulation id>"
+    serviceConfigHelpStr += "\n\tFEEDER_BUS_CONFIG_FILE=<full path of the feeder bus configuration file>"
+    serviceConfigHelpStr += "\n\tSWITCH_BUS_CONFIG_FILE_DIR=<full path to the directory containing the switch bus configuration file(s)>"
+    serviceConfigHelpStr += "\n\tSECONDARY_BUS_CONFIG_FILE_DIR=<full path to the directory containing the secondary bus configuration file(s)>"
+    serviceConfigHelpStr += "\n\tSIMULATION_ID=<simulation id>"
     parser.add_argument("service_configurations", nargs="+", help=serviceConfigHelpStr)
     args = parser.parse_args()
     switchBusConfigFiles = []
@@ -362,7 +362,7 @@ if __name__ == "__main__":
         logger.error(f"No arguments were provided by the user. Valid keywords are {validKeywords}.")
         raise RuntimeError(f"No arguments were provided by the user. Valid keywords are {validKeywords}.")
     simID = mainArgs.get("SIMULATION_ID")
-    systemBusConfigFile = mainArgs.get("SYSTEM_BUS_CONFIG")
+    systemBusConfigFile = mainArgs.get("SYSTEM_BUS_CONFIG_FILE")
     feederBusConfigFile = mainArgs.get("FEEDER_BUS_CONFIG_FILE")
     switchBusConfigFileDir = mainArgs.get("SWITCH_BUS_CONFIG_FILE_DIR")
     secondaryBusConfigFileDir = mainArgs.get("SECONDARY_BUS_CONFIG_FILE_DIR")
