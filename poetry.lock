@@ -169,46 +169,46 @@ files = [
 
 [[package]]
 name = "filelock"
-version = "3.12.0"
+version = "3.12.1"
 description = "A platform independent file lock."
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "filelock-3.12.0-py3-none-any.whl", hash = "sha256:ad98852315c2ab702aeb628412cbf7e95b7ce8c3bf9565670b4eaecf1db370a9"},
-    {file = "filelock-3.12.0.tar.gz", hash = "sha256:fc03ae43288c013d2ea83c8597001b1129db351aad9c57fe2409327916b8e718"},
+    {file = "filelock-3.12.1-py3-none-any.whl", hash = "sha256:42f1e4ff2b497311213d61ad7aac5fed9050608e5309573f101eefa94143134a"},
+    {file = "filelock-3.12.1.tar.gz", hash = "sha256:82b1f7da46f0ae42abf1bc78e548667f484ac59d2bcec38c713cee7e2eb51e83"},
 ]
 
 [package.extras]
-docs = ["furo (>=2023.3.27)", "sphinx (>=6.1.3)", "sphinx-autodoc-typehints (>=1.23,!=1.23.4)"]
-testing = ["covdefaults (>=2.3)", "coverage (>=7.2.3)", "diff-cover (>=7.5)", "pytest (>=7.3.1)", "pytest-cov (>=4)", "pytest-mock (>=3.10)", "pytest-timeout (>=2.1)"]
+docs = ["furo (>=2023.5.20)", "sphinx (>=7.0.1)", "sphinx-autodoc-typehints (>=1.23,!=1.23.4)"]
+testing = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "diff-cover (>=7.5)", "pytest (>=7.3.1)", "pytest-cov (>=4.1)", "pytest-mock (>=3.10)", "pytest-timeout (>=2.1)"]
 
 [[package]]
 name = "gridappsd-field-bus"
-version = "2023.5.1a9"
+version = "2023.6.1a2"
 description = "GridAPPS-D Field Bus Implementation"
 category = "main"
 optional = false
 python-versions = ">=3.7.9,<4.0"
 files = [
-    {file = "gridappsd_field_bus-2023.5.1a9-py3-none-any.whl", hash = "sha256:0c0f269b94dcc34bab40074113c380f6ae85b03f2e91c329dd16c38b57eb9be4"},
-    {file = "gridappsd_field_bus-2023.5.1a9.tar.gz", hash = "sha256:f9ed99cacf989f9e9efb44cca274bc2e740d43f803468d0aa1c1f7a8ec4b8d78"},
+    {file = "gridappsd_field_bus-2023.6.1a2-py3-none-any.whl", hash = "sha256:3c0149e361233f6ba9214833de7a4490d3f8e4fed500a12876058b97837df4bd"},
+    {file = "gridappsd_field_bus-2023.6.1a2.tar.gz", hash = "sha256:1c42ee5e01b2c2a0177d7c91a4b41690f8d422a85da1c09fd04a11c266b70bfb"},
 ]
 
 [package.dependencies]
 cim-graph = ">=2023.5.1a3,<2024.0.0"
-gridappsd-python = ">=2023.5.1a9,<2024.0.0"
+gridappsd-python = ">=2023.6.1a2,<2024.0.0"
 
 [[package]]
 name = "gridappsd-python"
-version = "2023.5.1a9"
+version = "2023.6.1a2"
 description = "A GridAPPS-D Python Adapter"
 category = "main"
 optional = false
 python-versions = ">=3.7.9,<4.0"
 files = [
-    {file = "gridappsd_python-2023.5.1a9-py3-none-any.whl", hash = "sha256:b207f0d8c951323225e815b9f841ef0b4bedfb99c1ba9d194c1929ff38265f47"},
-    {file = "gridappsd_python-2023.5.1a9.tar.gz", hash = "sha256:e5e2d6dee3f8a7cd83ec47eabd40c72f0d79fc8decd5c04cec7043e0eb970162"},
+    {file = "gridappsd_python-2023.6.1a2-py3-none-any.whl", hash = "sha256:52aa028ce54461e3863726e92762a2f72db25674074f1a00b9366661f702b270"},
+    {file = "gridappsd_python-2023.6.1a2.tar.gz", hash = "sha256:4c156af28aa1c6c35e999867e3a54c8c93904d240e67d94fd13c18eb4997e0a3"},
 ]
 
 [package.dependencies]
@@ -374,19 +374,19 @@ files = [
 
 [[package]]
 name = "platformdirs"
-version = "3.5.1"
+version = "3.5.3"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "platformdirs-3.5.1-py3-none-any.whl", hash = "sha256:e2378146f1964972c03c085bb5662ae80b2b8c06226c54b2ff4aa9483e8a13a5"},
-    {file = "platformdirs-3.5.1.tar.gz", hash = "sha256:412dae91f52a6f84830f39a8078cecd0e866cb72294a5c66808e74d5e88d251f"},
+    {file = "platformdirs-3.5.3-py3-none-any.whl", hash = "sha256:0ade98a4895e87dc51d47151f7d2ec290365a585151d97b4d8d6312ed6132fed"},
+    {file = "platformdirs-3.5.3.tar.gz", hash = "sha256:e48fabd87db8f3a7df7150a4a5ea22c546ee8bc39bc2473244730d4b56d2cc4e"},
 ]
 
 [package.extras]
-docs = ["furo (>=2023.3.27)", "proselint (>=0.13)", "sphinx (>=6.2.1)", "sphinx-autodoc-typehints (>=1.23,!=1.23.4)"]
-test = ["appdirs (==1.4.4)", "covdefaults (>=2.3)", "pytest (>=7.3.1)", "pytest-cov (>=4)", "pytest-mock (>=3.10)"]
+docs = ["furo (>=2023.5.20)", "proselint (>=0.13)", "sphinx (>=7.0.1)", "sphinx-autodoc-typehints (>=1.23,!=1.23.4)"]
+test = ["appdirs (==1.4.4)", "covdefaults (>=2.3)", "pytest (>=7.3.1)", "pytest-cov (>=4.1)", "pytest-mock (>=3.10)"]
 
 [[package]]
 name = "pre-commit"
@@ -622,14 +622,14 @@ files = [
 
 [[package]]
 name = "typing-extensions"
-version = "4.6.2"
+version = "4.6.3"
 description = "Backported and Experimental Type Hints for Python 3.7+"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "typing_extensions-4.6.2-py3-none-any.whl", hash = "sha256:3a8b36f13dd5fdc5d1b16fe317f5668545de77fa0b8e02006381fd49d731ab98"},
-    {file = "typing_extensions-4.6.2.tar.gz", hash = "sha256:06006244c70ac8ee83fa8282cb188f697b8db25bc8b4df07be1873c43897060c"},
+    {file = "typing_extensions-4.6.3-py3-none-any.whl", hash = "sha256:88a4153d8505aabbb4e13aacb7c486c2b4a33ca3b3f807914a9b4c844c471c26"},
+    {file = "typing_extensions-4.6.3.tar.gz", hash = "sha256:d91d5919357fe7f681a9f2b5b4cb2a5f1ef0a1e9f59c4d8ff0d3491e05c0ffd5"},
 ]
 
 [[package]]
