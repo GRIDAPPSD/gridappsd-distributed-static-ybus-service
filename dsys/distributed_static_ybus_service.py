@@ -64,12 +64,17 @@ import dsys.ybus_utils as utils
 cim_profile = CIM_PROFILE.RC4_2021.value
 agents_mod.set_cim_profile(cim_profile)
 cim = agents_mod.cim
-logging.basicConfig(format='%(asctime)s::%(levelname)s::%(name)s::%(filename)s::%(lineno)d::%(message)s',
+'''logging.basicConfig(format='%(asctime)s::%(levelname)s::%(name)s::%(filename)s::%(lineno)d::%(message)s',
                     filename='DistributedYBus.log',
                     filemode='w',
                     level=logging.DEBUG,
-                    encoding='utf-8')
+                    encoding='utf-8')'''
+
+
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler('DistributedYBus.log', 'w', 'utf-8')
+logger.addHandler(handler)
 
 
 class FeederAgentLevelStaticYbusService(FeederAgent):
@@ -295,7 +300,6 @@ def main(**kwargs):
         feederMessageBusDef = MessageBusDefinition.load(feederMessageBusConfigFile)
         feederYbusService = FeederAgentLevelStaticYbusService(systemMessageBusDef, feederMessageBusDef,
                                                             serviceMetadata, None, simulationId)
-        feederYbusService.connect()
         runningYbusServiceInfo.append(
             f"{type(feederYbusService).__name__}:{feederMessageBusDef.id}")
         runningServiceInstances.append(feederYbusService)
@@ -311,7 +315,6 @@ def main(**kwargs):
                 switchAreaService = SwitchAreaAgentLevelStaticYbusService(
                     feederMessageBusDef, switchAreaMessageBusDef, serviceMetadata, None,
                     simulationId)
-                switchAreaService.connect()
                 runningYbusServiceInfo.append(
                     f"{type(switchAreaService).__name__}:{switchAreaMessageBusDef.id}")
                 runningServiceInstances.append(switchAreaService)
@@ -334,13 +337,15 @@ def main(**kwargs):
                     secondaryAreaService = SecondaryAreaAgentLevelStaticYbusService(
                         switchAreaMessageBusDef, secondaryAreaMessageBusDef, serviceMetadata,
                         None, simulationId)
-                    secondaryAreaService.connect()
-                    runningYbusServiceInfo.append(
-                        f"{type(secondaryAreaService).__name__}:{secondaryAreaMessageBusDef.id}"
-                    )
-                    runningServiceInstances.append(secondaryAreaService)
-#                    secondaryAreaService.testYbusQueries()
-                    secondaryAreaService.updateYbusService()
+                    if len(secondaryAreaService.agent_area_dict['addressable_equipment']) == 0:
+                        secondaryAreaService.disconnect()
+                    else:
+                        runningYbusServiceInfo.append(
+                            f"{type(secondaryAreaService).__name__}:{secondaryAreaMessageBusDef.id}"
+                        )
+                        runningServiceInstances.append(secondaryAreaService)
+    #                    secondaryAreaService.testYbusQueries()
+                        secondaryAreaService.updateYbusService()
     servicesAreRunning = True
     while servicesAreRunning:
         try:
