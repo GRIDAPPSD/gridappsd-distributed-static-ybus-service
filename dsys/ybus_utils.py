@@ -64,7 +64,7 @@ class ComplexEncoder(json.JSONEncoder):
             return json.JSONEncoder.default(self, obj)
 
 
-def initializeCimProfile(distributedArea: DistributedModel | SwitchArea | SecondaryArea):
+def initializeCimProfile(distributedArea):
     distributedArea.get_all_attributes(cim.ACLineSegment)
     distributedArea.get_all_attributes(cim.TransformerTank)
     distributedArea.get_all_attributes(cim.PowerTransformer)
@@ -101,8 +101,7 @@ def initializeCimProfile(distributedArea: DistributedModel | SwitchArea | Second
     distributedArea.get_all_attributes(cim.NoLoadTest)
 
 
-def perLengthPhaseImpedanceLineConfigs(
-        distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
+def perLengthPhaseImpedanceLineConfigs(distributedArea) -> List[Dict]:
     rv = []
     acLineSegments = distributedArea.typed_catalog.get(cim.ACLineSegment, {}).keys()
     perLengthImpedances = distributedArea.typed_catalog.get(cim.PerLengthPhaseImpedance, {})
@@ -150,8 +149,7 @@ def perLengthPhaseImpedanceLineConfigs(
     return rv
 
 
-def perLengthPhaseImpedanceLineNames(
-        distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
+def perLengthPhaseImpedanceLineNames(distributedArea) -> List[Dict]:
     rv = []
     acLineSegments = distributedArea.typed_catalog.get(cim.ACLineSegment, {})
     desiredInfo = {}
@@ -196,8 +194,7 @@ def perLengthPhaseImpedanceLineNames(
     return rv
 
 
-def perLengthSequenceImpedanceLineConfigs(
-        distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
+def perLengthSequenceImpedanceLineConfigs(distributedArea) -> List[Dict]:
     rv = []
     if isinstance(distributedArea, DistributedModel):
         distributedAreaID = distributedArea.feeder.mRID
@@ -242,8 +239,7 @@ def perLengthSequenceImpedanceLineConfigs(
     return rv
 
 
-def perLengthSequenceImpedanceLineNames(
-        distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
+def perLengthSequenceImpedanceLineNames(distributedArea) -> List[Dict]:
     rv = []
     if isinstance(distributedArea, DistributedModel):
         distributedAreaID = distributedArea.feeder.mRID
@@ -283,8 +279,7 @@ def perLengthSequenceImpedanceLineNames(
     return rv
 
 
-def acLineSegmentLineNames(
-        distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
+def acLineSegmentLineNames(distributedArea) -> List[Dict]:
     rv = []
     if isinstance(distributedArea, DistributedModel):
         distributedAreaID = distributedArea.feeder.mRID
@@ -324,7 +319,7 @@ def acLineSegmentLineNames(
     return rv
 
 
-def wireInfoSpacing(distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
+def wireInfoSpacing(distributedArea) -> List[Dict]:
     rv = []
     if isinstance(distributedArea, DistributedModel):
         distributedAreaID = distributedArea.feeder.mRID
@@ -367,7 +362,7 @@ def wireInfoSpacing(distributedArea: DistributedModel | SwitchArea | SecondaryAr
     return rv
 
 
-def wireInfoOverhead(distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
+def wireInfoOverhead(distributedArea) -> List[Dict]:
     rv = []
     if isinstance(distributedArea, DistributedModel):
         distributedAreaID = distributedArea.feeder.mRID
@@ -409,8 +404,7 @@ def wireInfoOverhead(distributedArea: DistributedModel | SwitchArea | SecondaryA
     return rv
 
 
-def wireInfoConcentricNeutral(
-        distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
+def wireInfoConcentricNeutral(distributedArea) -> List[Dict]:
     rv = []
     if isinstance(distributedArea, DistributedModel):
         distributedAreaID = distributedArea.feeder.mRID
@@ -464,8 +458,7 @@ def wireInfoConcentricNeutral(
     return rv
 
 
-def wireInfoTapeShield(
-        distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
+def wireInfoTapeShield(distributedArea) -> List[Dict]:
     rv = []
     if isinstance(distributedArea, DistributedModel):
         distributedAreaID = distributedArea.feeder.mRID
@@ -510,7 +503,7 @@ def wireInfoTapeShield(
 
 
 def wireInfoLineNames(
-        distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
+        distributedArea) -> List[Dict]:
     rv = []
     rvDict = {}
     if isinstance(distributedArea, DistributedModel):
@@ -566,7 +559,7 @@ def wireInfoLineNames(
 
 
 def powerTransformerEndXfmrImpedances(
-        distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
+        distributedArea) -> List[Dict]:
     rv = []
     if isinstance(distributedArea, DistributedModel):
         distributedAreaID = distributedArea.feeder.mRID
@@ -612,7 +605,7 @@ def powerTransformerEndXfmrImpedances(
 
 
 def powerTransformerEndXfmrNames(
-        distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
+        distributedArea) -> List[Dict]:
     rv = []
     if isinstance(distributedArea, DistributedModel):
         distributedAreaID = distributedArea.feeder.mRID
@@ -657,7 +650,7 @@ def powerTransformerEndXfmrNames(
 
 
 def transformerTankXfmrRated(
-        distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
+        distributedArea) -> List[Dict]:
     rv = []
     if isinstance(distributedArea, DistributedModel):
         distributedAreaID = distributedArea.feeder.mRID
@@ -695,7 +688,7 @@ def transformerTankXfmrRated(
 
 
 def transformerTankXfmrSct(
-        distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
+        distributedArea) -> List[Dict]:
     rv = []
     if isinstance(distributedArea, DistributedModel):
         distributedAreaID = distributedArea.feeder.mRID
@@ -755,7 +748,7 @@ def transformerTankXfmrSct(
 
 
 def transformerTankXfmrNames(
-        distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
+        distributedArea) -> List[Dict]:
     rv = []
     if isinstance(distributedArea, DistributedModel):
         distributedAreaID = distributedArea.feeder.mRID
@@ -791,7 +784,7 @@ def transformerTankXfmrNames(
 
 
 def switchingEquipmentSwitchNames(
-        distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
+        distributedArea) -> List[Dict]:
     rv = []
     if isinstance(distributedArea, DistributedModel):
         distributedAreaID = distributedArea.feeder.mRID
@@ -877,7 +870,7 @@ def switchingEquipmentSwitchNames(
 
 
 def shuntElementCapNames(
-        distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
+        distributedArea) -> List[Dict]:
     rv = []
     if isinstance(distributedArea, DistributedModel):
         distributedAreaID = distributedArea.feeder.mRID
@@ -948,7 +941,7 @@ def shuntElementCapNames(
 
 
 def transformerTankXfmrNlt(
-        distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
+        distributedArea) -> List[Dict]:
     rv = []
     if isinstance(distributedArea, DistributedModel):
         distributedAreaID = distributedArea.feeder.mRID
@@ -985,7 +978,7 @@ def transformerTankXfmrNlt(
 
 
 def powerTransformerEndXfmrAdmittances(
-        distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> List[Dict]:
+        distributedArea) -> List[Dict]:
     rv = []
     if isinstance(distributedArea, DistributedModel):
         distributedAreaID = distributedArea.feeder.mRID
@@ -1084,8 +1077,7 @@ def fillYbusSwapLines(bus1: str, bus2: str, Yval: float, Ybus: Dict):
     fillYbusAdd(node2 + '.' + phase1, bus2, -Yval, Ybus)
 
 
-def fillYbusPerLengthPhaseImpedanceLines(distributedArea: DistributedModel | SwitchArea
-                                         | SecondaryArea, Ybus: Dict):
+def fillYbusPerLengthPhaseImpedanceLines(distributedArea, Ybus: Dict):
     bindings = perLengthPhaseImpedanceLineConfigs(distributedArea)
     if len(bindings) == 0:
         return
@@ -1165,8 +1157,7 @@ def fillYbusPerLengthPhaseImpedanceLines(distributedArea: DistributedModel | Swi
                 fillYbusNoSwapLines(pair_i2b1, pair_i2b2, Ycomp[2, 2], Ybus)
 
 
-def fillYbusPerLengthSequenceImpedanceLines(distributedArea: DistributedModel | SwitchArea
-                                            | SecondaryArea, Ybus: Dict):
+def fillYbusPerLengthSequenceImpedanceLines(distributedArea, Ybus: Dict):
     bindings = perLengthSequenceImpedanceLineConfigs(distributedArea)
     if len(bindings) == 0:
         return
@@ -1206,7 +1197,7 @@ def fillYbusPerLengthSequenceImpedanceLines(distributedArea: DistributedModel | 
         fillYbusNoSwapLines(bus1 + '.3', bus2 + '.3', Ycomp[2, 2], Ybus)
 
 
-def fillYbusACLineSegmentLines(distributedArea: DistributedModel | SwitchArea | SecondaryArea,
+def fillYbusACLineSegmentLines(distributedArea,
                                Ybus: Dict):
     bindings = acLineSegmentLineNames(distributedArea)
     if len(bindings) == 0:
@@ -1391,8 +1382,7 @@ def offDiagZprim(i, j, wireinfo, wire_spacing_info, wire_cn_ts, XCoord, YCoord, 
     return Zprim
 
 
-def fillYbusWireInfoAndWireSpacingInfoLines(distributedArea: DistributedModel | SwitchArea
-                                            | SecondaryArea, Ybus: Dict):
+def fillYbusWireInfoAndWireSpacingInfoLines(distributedArea, Ybus: Dict):
     # WireSpacingInfo query
     bindings = wireInfoSpacing(distributedArea)
     XCoord = {}
@@ -1834,8 +1824,7 @@ def fillYbus6x6Xfmrs(bus1: str, bus2: str, DY_flag: bool, Ycomp: np.ndarray, Ybu
         fillYbusUnique(bus2 + '.2', bus1 + '.3', Ycomp[4, 2], Ybus)
 
 
-def fillYbusPowerTransformerEndXfmrs(distributedArea: DistributedModel | SwitchArea
-                                     | SecondaryArea, Ybus: Dict):
+def fillYbusPowerTransformerEndXfmrs(distributedArea, Ybus: Dict):
     bindings = powerTransformerEndXfmrImpedances(distributedArea)
     if len(bindings) == 0:
         return
@@ -1947,7 +1936,7 @@ def fillYbusPowerTransformerEndXfmrs(distributedArea: DistributedModel | SwitchA
         fillYbus6x6Xfmrs(bus1, bus2, connect_DY_flag, Ycomp, Ybus)
 
 
-def fillYbusTransformerTankXfmrs(distributedArea: DistributedModel | SwitchArea | SecondaryArea,
+def fillYbusTransformerTankXfmrs(distributedArea,
                                  Ybus: Dict):
     bindings = transformerTankXfmrRated(distributedArea)
     if len(bindings) == 0:
@@ -2178,8 +2167,7 @@ def fillYbusNoSwapSwitches(bus1: str, bus2: str, is_Open: bool, Ybus: Dict):
         fillYbusAddSwitches(bus2, bus2, Ybus)
 
 
-def fillYbusSwitchingEquipmentSwitches(distributedArea: DistributedModel | SwitchArea
-                                       | SecondaryArea, Ybus: Dict):
+def fillYbusSwitchingEquipmentSwitches(distributedArea, Ybus: Dict):
     bindings = switchingEquipmentSwitchNames(distributedArea)
     if len(bindings) == 0:
         return
@@ -2214,7 +2202,7 @@ def fillYbusOnlyAddShunts(bus: str, Yval: complex, Ybus: Dict):
     Ybus[bus][bus] += Yval
 
 
-def fillYbusShuntElementShunts(distributedArea: DistributedModel | SwitchArea | SecondaryArea,
+def fillYbusShuntElementShunts(distributedArea,
                                Ybus: Dict):
     # map query phase values to nodelist indexes
     ybusPhaseIdx = {'A': '.1', 'B': '.2', 'C': '.3', 's1': '.1', 's2': '.2'}
@@ -2365,7 +2353,7 @@ def countUniqueYbus(Ybus):
     return count
 
 
-def calculateYbus(distributedArea: DistributedModel | SwitchArea | SecondaryArea) -> Dict:
+def calculateYbus(distributedArea) -> Dict:
     Ybus = {}
     areaID = None
     if isinstance(distributedArea, DistributedModel):
