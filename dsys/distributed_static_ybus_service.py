@@ -67,7 +67,7 @@ cim = agents_mod.cim
 logging.basicConfig(format='%(asctime)s::%(levelname)s::%(name)s::%(filename)s::%(lineno)d::%(message)s',
                     filename='DistributedYBus.log',
                     filemode='w',
-                    level=logging.DEBUG,
+                    level=logging.INFO,
                     encoding='utf-8')
 logger = logging.getLogger(__name__)
 
@@ -116,7 +116,7 @@ class FeederAgentLevelStaticYbusService(FeederAgent):
             utils.initializeCimProfile(self.feeder_area)
             self.ybus = utils.calculateYbus(self.feeder_area)
             self.isYbusInitialized = True
-            logger.debug(
+            logger.info(
                 f"The Ybus for feederStaticYbusService in area id {self.feeder_area.feeder.mRID} is:\n{json.dumps(self.ybus, indent=4, sort_keys=True, cls=utils.ComplexEncoder)}"
             )
         else:
@@ -175,7 +175,7 @@ class SwitchAreaAgentLevelStaticYbusService(SwitchAreaAgent):
             utils.initializeCimProfile(self.switch_area)
             self.ybus = utils.calculateYbus(self.switch_area)
             self.isYbusInitialized = True
-            logger.debug(
+            logger.info(
                 f"The Ybus for SwitchAreaYbusService in area id {self.switch_area.area_id} is:\n{json.dumps(self.ybus, indent=4, sort_keys=True, cls=utils.ComplexEncoder)}"
             )
         else:
@@ -233,7 +233,7 @@ class SecondaryAreaAgentLevelStaticYbusService(SecondaryAreaAgent):
             utils.initializeCimProfile(self.secondary_area)
             self.ybus = utils.calculateYbus(self.secondary_area)
             self.isYbusInitialized = True
-            logger.debug(
+            logger.info(
                 f"The Ybus for SecondaryAreaYbusService in area id {self.secondary_area.area_id} is:\n{json.dumps(self.ybus, indent=4, sort_keys=True, cls=utils.ComplexEncoder)}"
             )
         else:
@@ -342,6 +342,7 @@ def main(**kwargs):
 #                    secondaryAreaService.testYbusQueries()
                     secondaryAreaService.updateYbusService()
     servicesAreRunning = True
+    print("Ybus services are running!")
     while servicesAreRunning:
         try:
             for service in runningServiceInstances:
