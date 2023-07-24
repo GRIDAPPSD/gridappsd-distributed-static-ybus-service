@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "dsys"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.8"
 numpy = "^1.24.3"
 gridappsd-field-bus = "^2023.5.1a9"
 

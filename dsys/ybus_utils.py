@@ -101,6 +101,7 @@ def initializeCimProfile(distributedArea):
     distributedArea.get_all_attributes(cim.NoLoadTest)
 
 
+
 def perLengthPhaseImpedanceLineConfigs(distributedArea) -> List[Dict]:
     rv = []
     acLineSegments = distributedArea.typed_catalog.get(cim.ACLineSegment, {}).keys()

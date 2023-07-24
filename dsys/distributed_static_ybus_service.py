@@ -43,6 +43,7 @@ import json
 import logging
 import math
 import os
+from pathlib import Path
 import time
 from typing import Dict, List, Optional
 
@@ -259,11 +260,11 @@ def main(**kwargs):
     switchAreaMessageBusConfigFiles = kwargs.get("switch_bus_config_files")
     secondaryAreaMessageBusConfigFiles = kwargs.get("secondary_bus_config_files")
     simulationId = kwargs.get("simulation_id")
-    if (not isinstance(systemMessageBusConfigFile, str) or not systemMessageBusConfigFile) and systemMessageBusConfigFile is not None:
+    if (not isinstance(systemMessageBusConfigFile, (str, Path)) or not systemMessageBusConfigFile) and systemMessageBusConfigFile is not None:
         raise ValueError(
             f"systemMessageBusConfigFile is an invalid type or an empty string.\nsystemMessageBusConfigFile = {systemMessageBusConfigFile}"
         )
-    if (not isinstance(feederMessageBusConfigFile, str) or not feederMessageBusConfigFile) and feederMessageBusConfigFile is not None:
+    if (not isinstance(feederMessageBusConfigFile, (str, Path)) or not feederMessageBusConfigFile) and feederMessageBusConfigFile is not None:
         raise ValueError(
             f"feederMessageBusConfigFile is an invalid type or an empty string.\nfeederMessageBusConfigFile = {feederMessageBusConfigFile}"
         )
@@ -273,7 +274,7 @@ def main(**kwargs):
         )
     else:
         for configFile in switchAreaMessageBusConfigFiles:
-            if not isinstance(configFile, str) or not configFile:
+            if not isinstance(configFile, (str, Path)) or not configFile:
                 raise ValueError(
                     f"The contents of switchAreaMessageBusConfigFiles are not all strings or contain an empty string.\nswitchAreaMessageBusConfigFiles = {json.dumps(switchAreaMessageBusConfigFiles, indent = 4)}"
                 )
@@ -283,7 +284,7 @@ def main(**kwargs):
         )
     else:
         for configFile in secondaryAreaMessageBusConfigFiles:
-            if not isinstance(configFile, str) or not configFile:
+            if not isinstance(configFile, (str, Path)) or not configFile:
                 raise ValueError(
                     f"The contents of secondaryAreaMessageBusConfigFiles are not all strings or contain an empty string.\nsecondaryAreaMessageBusConfigFiles = {json.dumps(secondaryAreaMessageBusConfigFiles, indent = 4)}"
                 )
@@ -366,16 +367,19 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     serviceConfigHelpStr = "Variable keyword arguments that provide user defined distributed area agent configuration files."
     serviceConfigHelpStr += "\nValid keywords are as follows:"
-    serviceConfigHelpStr += "\n\tSYSTEM_BUS_CONFIG_FILE=<full path of the system bus configuration file>"
-    serviceConfigHelpStr += "\n\tFEEDER_BUS_CONFIG_FILE=<full path of the feeder bus configuration file>"
-    serviceConfigHelpStr += "\n\tSWITCH_BUS_CONFIG_FILE_DIR=<full path to the directory containing the switch bus configuration file(s)>"
-    serviceConfigHelpStr += "\n\tSECONDARY_BUS_CONFIG_FILE_DIR=<full path to the directory containing the secondary bus configuration file(s)>"
-    serviceConfigHelpStr += "\n\tSIMULATION_ID=<simulation id>"
+    serviceConfigHelpStr += "\n\tSYSTEM_BUS_CONFIG_FILE=<full path of the system bus configuration file>."
+    serviceConfigHelpStr += "\n\tFEEDER_BUS_CONFIG_FILE=<full path of the feeder bus configuration file>."
+    serviceConfigHelpStr += "\n\tSWITCH_BUS_CONFIG_FILE_DIR=<full path to the directory containing the switch bus configuration file(s)>."
+    serviceConfigHelpStr += "\n\tSECONDARY_BUS_CONFIG_FILE_DIR=<full path to the directory containing the secondary bus configuration file(s)>."
+    serviceConfigHelpStr += "\n\tBATCH_RUN_CONFIG_DIR=<full path to the directory containing configuration folders for all field bus levels>."
+    serviceConfigHelpStr += "\n\t\tThis variable should not be specified in combination with SYSTEM_BUS_CONFIG_FILE, FEEDER_BUS_CONFIG_FILE, SWITCH_BUS_CONFIG_FILE_DIR, and SECONDARY_BUS_CONFIG_FILE_DIR, as it will override those values."
+    serviceConfigHelpStr += "\n\t\tThe directory needs to contain at least one of the following folder names: feeder_level, secondary_level, switch_level, and/or system_level."
+    serviceConfigHelpStr += "\n\tSIMULATION_ID=<simulation id>."
     parser.add_argument("service_configurations", nargs="+", help=serviceConfigHelpStr)
     args = parser.parse_args()
     switchBusConfigFiles = []
     secondaryBusConfigFiles = []
-    validKeywords = ["SYSTEM_BUS_CONFIG_FILE", "FEEDER_BUS_CONFIG_FILE", "SWITCH_BUS_CONFIG_FILE_DIR", "SECONDARY_BUS_CONFIG_FILE_DIR","SIMULATION_ID"]
+    validKeywords = ["BATCH_RUN_CONFIG_DIR","SYSTEM_BUS_CONFIG_FILE", "FEEDER_BUS_CONFIG_FILE", "SWITCH_BUS_CONFIG_FILE_DIR", "SECONDARY_BUS_CONFIG_FILE_DIR","SIMULATION_ID"]
     mainArgs = {}
     for arg in args.service_configurations:
         argSplit = arg.split("=", maxsplit=1)
@@ -387,20 +391,42 @@ if __name__ == "__main__":
     if len(mainArgs) == 0:
         logger.error(f"No arguments were provided by the user. Valid keywords are {validKeywords}.")
         raise RuntimeError(f"No arguments were provided by the user. Valid keywords are {validKeywords}.")
+    systemBusConfigFile = None
+    feederBusConfigFile = None
+    switchBusConfigFileDir = None
+    secondaryBusConfigFileDir = None
     simID = mainArgs.get("SIMULATION_ID")
-    systemBusConfigFile = mainArgs.get("SYSTEM_BUS_CONFIG_FILE")
-    feederBusConfigFile = mainArgs.get("FEEDER_BUS_CONFIG_FILE")
-    switchBusConfigFileDir = mainArgs.get("SWITCH_BUS_CONFIG_FILE_DIR")
-    secondaryBusConfigFileDir = mainArgs.get("SECONDARY_BUS_CONFIG_FILE_DIR")
+    batchRunDir = mainArgs.get("BATCH_RUN_CONFIG_DIR")
+    if batchRunDir is not None:
+        systemBusConfigDir = Path(batchRunDir).resolve() / "system_level"
+        if systemBusConfigDir.is_dir():
+            for file in systemBusConfigDir.iterdir():
+                if file.suffix == ".yml":
+                    systemBusConfigFile = file.resolve()
+        feederBusConfigDir = Path(batchRunDir).resolve() / "feeder_level"
+        if feederBusConfigDir.is_dir():
+            for file in feederBusConfigDir.iterdir():
+                if file.suffix == ".yml":
+                    feederBusConfigFile = file.resolve()
+        switchBusConfigFileDir = Path(batchRunDir).resolve() / "switch_level"
+        if not switchBusConfigFileDir.is_dir():
+            switchBusCOnfigFileDir = None
+        secondaryBusConfigFileDir = Path(batchRunDir).resolve() / "secondary_level"
+        if not secondaryBusConfigFileDir.is_dir():
+            secondaryBusConfigFileDir = None
+    else:
+        systemBusConfigFile = mainArgs.get("SYSTEM_BUS_CONFIG_FILE")
+        feederBusConfigFile = mainArgs.get("FEEDER_BUS_CONFIG_FILE")
+        switchBusConfigFileDir = mainArgs.get("SWITCH_BUS_CONFIG_FILE_DIR")
+        secondaryBusConfigFileDir = mainArgs.get("SECONDARY_BUS_CONFIG_FILE_DIR")
     if switchBusConfigFileDir is not None:
-        for file in os.listdir(switchBusConfigFileDir):
-            if file.endswith(".yml"):
-                switchBusConfigFiles.append(os.path.join(switchBusConfigFileDir, file))
+        for file in Path(switchBusConfigFileDir).iterdir():
+            if file.suffix == ".yml":
+                switchBusConfigFiles.append(file.resolve())
     if secondaryBusConfigFileDir is not None:
-        for file in os.listdir(secondaryBusConfigFileDir):
-            if file.endswith(".yml"):
-                secondaryBusConfigFiles.append(
-                    os.path.join(secondaryBusConfigFileDir, file))
+        for file in Path(secondaryBusConfigFileDir).iterdir():
+            if file.suffix == ".yml":
+                secondaryBusConfigFiles.append(file.resolve())
     main(system_bus_config_file=systemBusConfigFile, 
          feeder_bus_config_file=feederBusConfigFile, 
          switch_bus_config_files=switchBusConfigFiles, 
