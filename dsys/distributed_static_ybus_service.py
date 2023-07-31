@@ -68,15 +68,9 @@ cim = agents_mod.cim
 '''logging.basicConfig(format='%(asctime)s::%(levelname)s::%(name)s::%(filename)s::%(lineno)d::%(message)s',
                     filename='DistributedYBus.log',
                     filemode='w',
-                    level=logging.INFO
+                    level=logging.INFO,
                     encoding='utf-8')'''
-
-
-
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler('DistributedYBus.log', 'w', 'utf-8')
-logger.addHandler(handler)
 
 
 class FeederAgentLevelStaticYbusService(FeederAgent):

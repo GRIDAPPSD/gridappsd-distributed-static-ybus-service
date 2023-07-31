@@ -59,7 +59,7 @@ class ComplexEncoder(json.JSONEncoder):
 
     def default(self, obj):
         if isinstance(obj, complex):
-            return f"{obj.real}{obj.imag:+}j"
+            return [obj.real, obj.imag]
         else:
             return json.JSONEncoder.default(self, obj)
 
@@ -2354,6 +2354,13 @@ def countUniqueYbus(Ybus):
     return count
 
 
+def makeYbusSerializable(Ybus: Dict):
+    for bus1 in Ybus.keys():
+        for bus2 in Ybus[bus1].keys():
+            yVal = complex(Ybus[bus1][bus2])
+            Ybus[bus1][bus2] = [yVal.real, yVal.imag]
+
+
 def calculateYbus(distributedArea) -> Dict:
     Ybus = {}
     areaID = None
@@ -2399,7 +2406,8 @@ def calculateYbus(distributedArea) -> Dict:
     logger.debug(f'Switching_equipment # entries: {switch_count}')
     fillYbusShuntElementShunts(distributedArea, Ybus)
     logger.debug(
-        f"Ybus for {areaID} after fillYbusShuntElementShunts is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
+       f"Ybus for {areaID} after fillYbusShuntElementShunts is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
     )
     logger.debug('Shunt_element contributions added (no new entries)')
+    makeYbusSerializable(Ybus)
     return Ybus
