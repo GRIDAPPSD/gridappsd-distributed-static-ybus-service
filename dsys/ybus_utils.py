@@ -60,6 +60,15 @@ class ComplexEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, complex):
             return [obj.real, obj.imag]
+        elif isinstance(obj, np.ndarray):
+            dims = obj.shape
+            rv = []
+            for r in range(dims[0]):
+                rl = []
+                for c in range(dims[1]):
+                    rl.append(obj[r,c])
+                rv.append(rl)
+            return rv
         else:
             return json.JSONEncoder.default(self, obj)
 
@@ -146,7 +155,7 @@ def perLengthPhaseImpedanceLineConfigs(distributedArea) -> List[Dict]:
                     rv.append(copy.deepcopy(desiredInfo))
                 desiredInfo.clear()
     logger.debug(
-        f'perLengthPhaseImpdenaceLineConfigs returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+        f'perLengthPhaseImpdenaceLineConfigs for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -191,7 +200,7 @@ def perLengthPhaseImpedanceLineNames(distributedArea) -> List[Dict]:
                     rv.append(copy.deepcopy(desiredInfo))
                 desiredInfo.clear()
     logger.debug(
-        f'perLengthPhaseImpedanceLineNames returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+        f'perLengthPhaseImpedanceLineNames for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -236,7 +245,7 @@ def perLengthSequenceImpedanceLineConfigs(distributedArea) -> List[Dict]:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
     logger.debug(
-        f'perLengthSequenceImpedanceLineConfigs returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+        f'perLengthSequenceImpedanceLineConfigs for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -276,7 +285,7 @@ def perLengthSequenceImpedanceLineNames(distributedArea) -> List[Dict]:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
     logger.debug(
-        f'perLengthSequenceImpedanceLineNames returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+        f'perLengthSequenceImpedanceLineNames for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -316,7 +325,7 @@ def acLineSegmentLineNames(distributedArea) -> List[Dict]:
         if len(desiredInfo) > 0 and not dictContainsNone:
             rv.append(copy.deepcopy(desiredInfo))
         desiredInfo.clear()
-    logger.debug(f'acLineSegmentLineNames returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'acLineSegmentLineNames for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -359,7 +368,7 @@ def wireInfoSpacing(distributedArea) -> List[Dict]:
                 if len(desiredInfo) > 0 and not dictContainsNone:
                     rv.append(copy.deepcopy(desiredInfo))
                 desiredInfo.clear()
-    logger.debug(f'wireInfoSpacing returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'wireInfoSpacing for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -401,7 +410,7 @@ def wireInfoOverhead(distributedArea) -> List[Dict]:
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-    logger.debug(f'wireInfoOverhead returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'wireInfoOverhead for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -455,7 +464,7 @@ def wireInfoConcentricNeutral(distributedArea) -> List[Dict]:
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-    logger.debug(f'wireInfoConcentricNeutral returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'wireInfoConcentricNeutral for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -499,7 +508,7 @@ def wireInfoTapeShield(distributedArea) -> List[Dict]:
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-    logger.debug(f'wireInfoTapeShield returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'wireInfoTapeShield for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -555,7 +564,7 @@ def wireInfoLineNames(
         for phs in ["A","B","C","s1","s2","N"]:
             if rvDict[k][phs] is not None:
                 rv.append(copy.deepcopy(rvDict[k][phs]))
-    logger.debug(f'wireInfoLineNames returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'wireInfoLineNames for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -601,7 +610,7 @@ def powerTransformerEndXfmrImpedances(
                             rv.append(copy.deepcopy(desiredInfo))
                         desiredInfo.clear()
     logger.debug(
-        f'powerTransformerEndXfmrImpedances returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+        f'powerTransformerEndXfmrImpedances for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -646,7 +655,7 @@ def powerTransformerEndXfmrNames(
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-    logger.debug(f'powerTransformerEndXfmrNames returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'powerTransformerEndXfmrNames for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -684,7 +693,7 @@ def transformerTankXfmrRated(
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-    logger.debug(f'transformerTankXfmrRated returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'transformerTankXfmrRated for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -744,7 +753,7 @@ def transformerTankXfmrSct(
                         if desiredInfo not in rv:
                             rv.append(copy.deepcopy(desiredInfo))
                     desiredInfo.clear()
-    logger.debug(f'transformerTankXfmrSct returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'transformerTankXfmrSct for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -780,7 +789,7 @@ def transformerTankXfmrNames(
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-    logger.debug(f'transformerTankXfmrNames returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'transformerTankXfmrNames for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -866,7 +875,7 @@ def switchingEquipmentSwitchNames(
             desiredInfo.clear()
 
     logger.debug(
-        f'switchingEquipmentSwitchNames returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+        f'switchingEquipmentSwitchNames for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -937,7 +946,7 @@ def shuntElementCapNames(
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-    logger.debug(f'shuntElementCapNames returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'shuntElementCapNames for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -974,7 +983,7 @@ def transformerTankXfmrNlt(
                 if len(desiredInfo) > 0 and not dictContainsNone:
                     rv.append(copy.deepcopy(desiredInfo))
                 desiredInfo.clear()
-    logger.debug(f'transformerTankXfmrNlt returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'transformerTankXfmrNlt for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -1011,7 +1020,7 @@ def powerTransformerEndXfmrAdmittances(
                     rv.append(copy.deepcopy(desiredInfo))
                 desiredInfo.clear()
     logger.debug(
-        f'powerTransformerEndXfmrAdmittances returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+        f'powerTransformerEndXfmrAdmittances for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -1103,10 +1112,11 @@ def fillYbusPerLengthPhaseImpedanceLines(distributedArea, Ybus: Dict):
     bindings = perLengthPhaseImpedanceLineNames(distributedArea)
     if len(bindings) == 0:
         return
+    bindingsSorted = sorted(bindings, key=lambda d: (d["line_name"]["value"], d["phase"]["value"]))
     # map line_name query phase values to nodelist indexes
     ybusPhaseIdx = {'A': '.1', 'B': '.2', 'C': '.3', 's1': '.1', 's2': '.2'}
     last_name = ''
-    for obj in bindings:
+    for obj in bindingsSorted:
         line_name = obj['line_name']['value']
         bus1 = obj['bus1']['value'].upper()
         bus2 = obj['bus2']['value'].upper()
@@ -1436,6 +1446,7 @@ def fillYbusWireInfoAndWireSpacingInfoLines(distributedArea, Ybus: Dict):
     bindings = wireInfoLineNames(distributedArea)
     if len(bindings) == 0:
         return
+    bindingsSorted = sorted(bindings, key=lambda d: (d["line_name"]["value"], d["phase"]["value"]))
     # map line_name query phase values to nodelist indexes
     ybusPhaseIdx = {'A': '.1', 'B': '.2', 'C': '.3', 'N': '.4', 's1': '.1', 's2': '.2'}
     # map between 0-base numpy array indices and 1-based formulas so everything lines up
@@ -1449,7 +1460,7 @@ def fillYbusWireInfoAndWireSpacingInfoLines(distributedArea, Ybus: Dict):
     tape_skip = False
     phaseIdx = 0
     CN_done = False
-    for obj in bindings:
+    for obj in bindingsSorted:
         line_name = obj['line_name']['value']
         bus1 = obj['bus1']['value'].upper()
         bus2 = obj['bus2']['value'].upper()
@@ -2358,7 +2369,7 @@ def makeYbusSerializable(Ybus: Dict):
     for bus1 in Ybus.keys():
         for bus2 in Ybus[bus1].keys():
             yVal = complex(Ybus[bus1][bus2])
-            Ybus[bus1][bus2] = [yVal.real, yVal.imag]
+            Ybus[bus1][bus2] = (yVal.real, yVal.imag)
 
 
 def calculateYbus(distributedArea) -> Dict:
