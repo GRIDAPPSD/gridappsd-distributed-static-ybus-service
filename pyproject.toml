@@ -9,7 +9,7 @@ packages = [{include = "dsys"}]
 [tool.poetry.dependencies]
 python = "^3.8"
 numpy = "^1.24.3"
-gridappsd-field-bus = "^2023.5.1a9"
+gridappsd-field-bus = {version = "^2023.8.1a0", allow-prereleases = true}
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.3.2"
