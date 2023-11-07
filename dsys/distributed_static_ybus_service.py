@@ -84,6 +84,9 @@ class FeederAgentLevelStaticYbusService(FeederAgent):
         super().__init__(upstream_message_bus_def, downstream_message_bus_def, service_config,
                          feeder_dict, simulation_id)
         self.isYbusInitialized = False
+        self.isServiceInitialized = False
+        if self.feeder_area is not None:
+            self.isServiceInitialized = True
 
     def testYbusQueries(self):
         if self.feeder_area is not None:
@@ -130,6 +133,9 @@ class FeederAgentLevelStaticYbusService(FeederAgent):
             if not self.isYbusInitialized:
                 self.updateYbusService()
             message_bus.send(headers.get('reply-to'), self.ybus)
+        if message.get("requestType", "") == "is_initialized":
+            response = {"is_initialized": self.isServiceInitialized}
+            message_bus.send(headers.get('reply-to'),response)
 
 
 class SwitchAreaAgentLevelStaticYbusService(SwitchAreaAgent):
@@ -143,6 +149,9 @@ class SwitchAreaAgentLevelStaticYbusService(SwitchAreaAgent):
         super().__init__(upstream_message_bus_def, downstream_message_bus_def, service_config,
                          switch_area_dict, simulation_id)
         self.isYbusInitialized = False
+        self.isServiceInitialized = False
+        if self.switch_area is not None:
+            self.isServiceInitialized = True
 
     def testYbusQueries(self):
         if self.switch_area is not None:
@@ -188,6 +197,9 @@ class SwitchAreaAgentLevelStaticYbusService(SwitchAreaAgent):
             if not self.isYbusInitialized:
                 self.updateYbusService()
             message_bus.send(headers.get('reply-to'), self.ybus)
+        if message.get("requestType", "") == "is_initialized":
+            response = {"is_initialized": self.isServiceInitialized}
+            message_bus.send(headers.get('reply-to'),response)
 
 
 class SecondaryAreaAgentLevelStaticYbusService(SecondaryAreaAgent):
@@ -201,6 +213,9 @@ class SecondaryAreaAgentLevelStaticYbusService(SecondaryAreaAgent):
         super().__init__(upstream_message_bus_def, downstream_message_bus_def, service_config,
                          secondary_area_dict, simulation_id)
         self.isYbusInitialized = False
+        self.isServiceInitialized = False
+        if self.secondary_area is not None:
+            self.isServiceInitialized = True
 
     def testYbusQueries(self):
         if self.secondary_area is not None:
@@ -242,10 +257,13 @@ class SecondaryAreaAgentLevelStaticYbusService(SecondaryAreaAgent):
             raise RuntimeError(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s secondary_area None. The service is malformed.")
 
     def on_request(self, message_bus: FieldMessageBus, headers: Dict, message: Dict):
-        if message.get("requestType", "") == "LocalYbus":
+        if message.get("requestType", "") == "localYbus":
             if not self.isYbusInitialized:
                 self.updateYbusService()
             message_bus.send(headers.get('reply-to'), self.ybus)
+        if message.get("requestType", "") == "is_initialized":
+            response = {"is_initialized": self.isServiceInitialized}
+            message_bus.send(headers.get('reply-to'),response)
 
 
 def main(**kwargs):
