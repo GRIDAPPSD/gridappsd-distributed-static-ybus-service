@@ -38,26 +38,15 @@
 #-------------------------------------------------------------------------------
 
 from argparse import ArgumentParser
-import copy
 import json
 import logging
-import math
-import os
 from pathlib import Path
-import time
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 from cimgraph.data_profile import CIM_PROFILE
-from cimgraph.loaders import ConnectionParameters
-from cimgraph.loaders.gridappsd import GridappsdConnection
-from cimgraph.models import DistributedModel, SwitchArea, SecondaryArea
 import gridappsd.field_interface.agents.agents as agents_mod
-from gridappsd.field_interface.agents import CoordinatingAgent, FeederAgent, SwitchAreaAgent, SecondaryAreaAgent
-from gridappsd.field_interface.context import LocalContext
-from gridappsd.field_interface.gridappsd_field_bus import GridAPPSDMessageBus
+from gridappsd.field_interface.agents import FeederAgent, SwitchAreaAgent, SecondaryAreaAgent
 from gridappsd.field_interface.interfaces import FieldMessageBus, MessageBusDefinition
-import numpy as np
-import yaml
 
 import dsys.ybus_utils as utils
 
@@ -81,8 +70,8 @@ class FeederAgentLevelStaticYbusService(FeederAgent):
                  service_config: Dict,
                  feeder_dict: Optional[Dict] = None,
                  simulation_id: Optional[str] = None):
-        super().__init__(upstream_message_bus_def, downstream_message_bus_def, service_config,
-                         feeder_dict, simulation_id)
+        super().__init__(upstream_message_bus_def, downstream_message_bus_def, service_config, feeder_dict,
+                         simulation_id)
         self.isYbusInitialized = False
         self.isServiceInitialized = False
         if self.feeder_area is not None:
@@ -112,21 +101,27 @@ class FeederAgentLevelStaticYbusService(FeederAgent):
             rv = utils.transformerTankXfmrNlt(self.feeder_area)
             rv = utils.powerTransformerEndXfmrAdmittances(self.feeder_area)
         else:
-            logger.error(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s feeder_area None. The service is malformed.")
-            raise RuntimeError(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s feeder_area None. The service is malformed.")
+            logger.error(
+                f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s feeder_area None. The service is \
+                    malformed.")
+            raise RuntimeError(
+                f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s feeder_area None. The service is \
+                    malformed.")
 
     def updateYbusService(self):
         if self.feeder_area is not None:
             utils.initializeCimProfile(self.feeder_area)
             self.ybus = utils.calculateYbus(self.feeder_area)
             self.isYbusInitialized = True
-            logger.info(
-                f"The Ybus for feederStaticYbusService in area id {self.feeder_area.feeder.mRID} is:\n{json.dumps(self.ybus, indent=4, sort_keys=True, cls=utils.ComplexEncoder)}"
-            )
+            logger.info(f"The Ybus for feederStaticYbusService in area id {self.feeder_area.feeder.mRID} is:\n\
+                    {json.dumps(self.ybus, indent=4, sort_keys=True, cls=utils.ComplexEncoder)}")
         else:
-            logger.error(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s feeder_area None. The service is malformed.")
-            raise RuntimeError(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s feeder_area None. The service is malformed.")
-        
+            logger.error(
+                f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s feeder_area None. The service is \
+                    malformed.")
+            raise RuntimeError(
+                f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s feeder_area None. The service is \
+                    malformed.")
 
     def on_request(self, message_bus: FieldMessageBus, headers: Dict, message: Dict):
         if message.get("requestType", "") == "LocalYbus":
@@ -135,7 +130,7 @@ class FeederAgentLevelStaticYbusService(FeederAgent):
             message_bus.send(headers.get('reply-to'), self.ybus)
         if message.get("requestType", "") == "is_initialized":
             response = {"is_initialized": self.isServiceInitialized}
-            message_bus.send(headers.get('reply-to'),response)
+            message_bus.send(headers.get('reply-to'), response)
 
 
 class SwitchAreaAgentLevelStaticYbusService(SwitchAreaAgent):
@@ -146,8 +141,8 @@ class SwitchAreaAgentLevelStaticYbusService(SwitchAreaAgent):
                  service_config: Dict,
                  switch_area_dict: Optional[Dict] = None,
                  simulation_id: Optional[str] = None):
-        super().__init__(upstream_message_bus_def, downstream_message_bus_def, service_config,
-                         switch_area_dict, simulation_id)
+        super().__init__(upstream_message_bus_def, downstream_message_bus_def, service_config, switch_area_dict,
+                         simulation_id)
         self.isYbusInitialized = False
         self.isServiceInitialized = False
         if self.switch_area is not None:
@@ -177,20 +172,27 @@ class SwitchAreaAgentLevelStaticYbusService(SwitchAreaAgent):
             rv = utils.transformerTankXfmrNlt(self.switch_area)
             rv = utils.powerTransformerEndXfmrAdmittances(self.switch_area)
         else:
-            logger.error(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s switch_area None. The service is malformed.")
-            raise RuntimeError(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s switch_area None. The service is malformed.")
+            logger.error(
+                f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s switch_area None. The service is \
+                    malformed.")
+            raise RuntimeError(
+                f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s switch_area None. The service is \
+                    malformed.")
 
     def updateYbusService(self):
         if self.switch_area is not None:
             utils.initializeCimProfile(self.switch_area)
             self.ybus = utils.calculateYbus(self.switch_area)
             self.isYbusInitialized = True
-            logger.info(
-                f"The Ybus for SwitchAreaYbusService in area id {self.switch_area.area_id} is:\n{json.dumps(self.ybus, indent=4, sort_keys=True, cls=utils.ComplexEncoder)}"
-            )
+            logger.info(f"The Ybus for SwitchAreaYbusService in area id {self.switch_area.area_id} is:\n\
+                    {json.dumps(self.ybus, indent=4, sort_keys=True, cls=utils.ComplexEncoder)}")
         else:
-            logger.error(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s switch_area None. The service is malformed.")
-            raise RuntimeError(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s switch_area None. The service is malformed.")
+            logger.error(
+                f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s switch_area None. The service is \
+                    malformed.")
+            raise RuntimeError(
+                f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s switch_area None. The service is \
+                    malformed.")
 
     def on_request(self, message_bus: FieldMessageBus, headers: Dict, message: Dict):
         if message.get("requestType", "") == "LocalYbus":
@@ -199,7 +201,7 @@ class SwitchAreaAgentLevelStaticYbusService(SwitchAreaAgent):
             message_bus.send(headers.get('reply-to'), self.ybus)
         if message.get("requestType", "") == "is_initialized":
             response = {"is_initialized": self.isServiceInitialized}
-            message_bus.send(headers.get('reply-to'),response)
+            message_bus.send(headers.get('reply-to'), response)
 
 
 class SecondaryAreaAgentLevelStaticYbusService(SecondaryAreaAgent):
@@ -210,8 +212,8 @@ class SecondaryAreaAgentLevelStaticYbusService(SecondaryAreaAgent):
                  service_config: Dict,
                  secondary_area_dict: Optional[Dict] = None,
                  simulation_id: Optional[str] = None):
-        super().__init__(upstream_message_bus_def, downstream_message_bus_def, service_config,
-                         secondary_area_dict, simulation_id)
+        super().__init__(upstream_message_bus_def, downstream_message_bus_def, service_config, secondary_area_dict,
+                         simulation_id)
         self.isYbusInitialized = False
         self.isServiceInitialized = False
         if self.secondary_area is not None:
@@ -241,20 +243,27 @@ class SecondaryAreaAgentLevelStaticYbusService(SecondaryAreaAgent):
             rv = utils.transformerTankXfmrNlt(self.secondary_area)
             rv = utils.powerTransformerEndXfmrAdmittances(self.secondary_area)
         else:
-            logger.error(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s secondary_area None. The service is malformed.")
-            raise RuntimeError(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s secondary_area None. The service is malformed.")
+            logger.error(
+                f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s secondary_area None. The service is \
+                    malformed.")
+            raise RuntimeError(
+                f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s secondary_area None. The service is \
+                    malformed.")
 
     def updateYbusService(self):
         if self.secondary_area is not None:
             utils.initializeCimProfile(self.secondary_area)
             self.ybus = utils.calculateYbus(self.secondary_area)
             self.isYbusInitialized = True
-            logger.info(
-                f"The Ybus for SecondaryAreaYbusService in area id {self.secondary_area.area_id} is:\n{json.dumps(self.ybus, indent=4, sort_keys=True, cls=utils.ComplexEncoder)}"
-            )
+            logger.info(f"The Ybus for SecondaryAreaYbusService in area id {self.secondary_area.area_id} is:\n\
+                    {json.dumps(self.ybus, indent=4, sort_keys=True, cls=utils.ComplexEncoder)}")
         else:
-            logger.error(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s secondary_area None. The service is malformed.")
-            raise RuntimeError(f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s secondary_area None. The service is malformed.")
+            logger.error(
+                f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s secondary_area None. The service is \
+                    malformed.")
+            raise RuntimeError(
+                f"{type(self).__name__}:{self.downstream_message_bus_def.id}'s secondary_area None. The service is \
+                    malformed.")
 
     def on_request(self, message_bus: FieldMessageBus, headers: Dict, message: Dict):
         if message.get("requestType", "") == "localYbus":
@@ -263,7 +272,7 @@ class SecondaryAreaAgentLevelStaticYbusService(SecondaryAreaAgent):
             message_bus.send(headers.get('reply-to'), self.ybus)
         if message.get("requestType", "") == "is_initialized":
             response = {"is_initialized": self.isServiceInitialized}
-            message_bus.send(headers.get('reply-to'),response)
+            message_bus.send(headers.get('reply-to'), response)
 
 
 def main(**kwargs):
@@ -272,34 +281,35 @@ def main(**kwargs):
     switchAreaMessageBusConfigFiles = kwargs.get("switch_bus_config_files")
     secondaryAreaMessageBusConfigFiles = kwargs.get("secondary_bus_config_files")
     simulationId = kwargs.get("simulation_id")
-    if (not isinstance(systemMessageBusConfigFile, (str, Path)) or not systemMessageBusConfigFile) and systemMessageBusConfigFile is not None:
+    if (not isinstance(systemMessageBusConfigFile,(str, Path)) or not systemMessageBusConfigFile) \
+            and systemMessageBusConfigFile is not None:
         raise ValueError(
-            f"systemMessageBusConfigFile is an invalid type or an empty string.\nsystemMessageBusConfigFile = {systemMessageBusConfigFile}"
-        )
-    if (not isinstance(feederMessageBusConfigFile, (str, Path)) or not feederMessageBusConfigFile) and feederMessageBusConfigFile is not None:
+            f"systemMessageBusConfigFile is an invalid type or an empty string.\nsystemMessageBusConfigFile = \
+                {systemMessageBusConfigFile}")
+    if (not isinstance(feederMessageBusConfigFile,(str, Path)) or not feederMessageBusConfigFile) \
+            and feederMessageBusConfigFile is not None:
         raise ValueError(
-            f"feederMessageBusConfigFile is an invalid type or an empty string.\nfeederMessageBusConfigFile = {feederMessageBusConfigFile}"
-        )
+            f"feederMessageBusConfigFile is an invalid type or an empty string.\nfeederMessageBusConfigFile = \
+            {feederMessageBusConfigFile}")
     if not isinstance(switchAreaMessageBusConfigFiles, list):
-        raise ValueError(
-            f"switchAreaMessageBusConfigFiles is an invalid type or an empty string.\nswitchAreaMessageBusConfigFiles = {json.dumps(switchAreaMessageBusConfigFiles, indent = 4)}"
-        )
+        raise ValueError(f"switchAreaMessageBusConfigFiles is an invalid type or an empty string.\n\
+            switchAreaMessageBusConfigFiles = {json.dumps(switchAreaMessageBusConfigFiles, indent = 4)}")
     else:
         for configFile in switchAreaMessageBusConfigFiles:
             if not isinstance(configFile, (str, Path)) or not configFile:
                 raise ValueError(
-                    f"The contents of switchAreaMessageBusConfigFiles are not all strings or contain an empty string.\nswitchAreaMessageBusConfigFiles = {json.dumps(switchAreaMessageBusConfigFiles, indent = 4)}"
-                )
+                    f"The contents of switchAreaMessageBusConfigFiles are not all strings or contain an empty string.\n\
+                    switchAreaMessageBusConfigFiles = {json.dumps(switchAreaMessageBusConfigFiles, indent = 4)}")
     if not isinstance(secondaryAreaMessageBusConfigFiles, list):
-        raise ValueError(
-            f"secondaryAreaMessageBusConfigFiles is an invalid type or an empty string.\nsecondaryAreaMessageBusConfigFiles = {json.dumps(secondaryAreaMessageBusConfigFiles, indent = 4)}"
-        )
+        raise ValueError(f"secondaryAreaMessageBusConfigFiles is an invalid type or an empty string.\n\
+            secondaryAreaMessageBusConfigFiles = {json.dumps(secondaryAreaMessageBusConfigFiles, indent = 4)}")
     else:
         for configFile in secondaryAreaMessageBusConfigFiles:
             if not isinstance(configFile, (str, Path)) or not configFile:
                 raise ValueError(
-                    f"The contents of secondaryAreaMessageBusConfigFiles are not all strings or contain an empty string.\nsecondaryAreaMessageBusConfigFiles = {json.dumps(secondaryAreaMessageBusConfigFiles, indent = 4)}"
-                )
+                    f"The contents of secondaryAreaMessageBusConfigFiles are not all strings or contain an empty \
+                    string.\nsecondaryAreaMessageBusConfigFiles = \
+                    {json.dumps(secondaryAreaMessageBusConfigFiles, indent = 4)}")
     serviceMetadata = {
         "app_id": "static_ybus_service",
         "description": "This is a GridAPPS-D distributed static ybus service agent."
@@ -312,60 +322,55 @@ def main(**kwargs):
     if feederMessageBusConfigFile is not None and systemMessageBusConfigFile is not None:
         systemMessageBusDef = MessageBusDefinition.load(systemMessageBusConfigFile)
         feederMessageBusDef = MessageBusDefinition.load(feederMessageBusConfigFile)
-        feederYbusService = FeederAgentLevelStaticYbusService(systemMessageBusDef, feederMessageBusDef,
-                                                            serviceMetadata, None, simulationId)
-        runningYbusServiceInfo.append(
-            f"{type(feederYbusService).__name__}:{feederMessageBusDef.id}")
+        feederYbusService = FeederAgentLevelStaticYbusService(systemMessageBusDef, feederMessageBusDef, serviceMetadata,
+                                                              None, simulationId)
+        runningYbusServiceInfo.append(f"{type(feederYbusService).__name__}:{feederMessageBusDef.id}")
         runningServiceInstances.append(feederYbusService)
-#        feederYbusService.testYbusQueries()
-        feederYbusService.updateYbusService()
+        # feederYbusService.updateYbusService()
     if len(switchAreaMessageBusConfigFiles) > 0 and feederMessageBusConfigFile is not None:
         if feederMessageBusDef is None:
             feederMessageBusDef = MessageBusDefinition.load(feederMessageBusConfigFile)
         for switchConfigFile in switchAreaMessageBusConfigFiles:
-                switchAreaMessageBusDef = MessageBusDefinition.load(
-                    switchConfigFile)
-                switchAreaMessageBusDefs[switchAreaMessageBusDef.id] = switchAreaMessageBusDef
-                switchAreaService = SwitchAreaAgentLevelStaticYbusService(
-                    feederMessageBusDef, switchAreaMessageBusDef, serviceMetadata, None,
-                    simulationId)
-                runningYbusServiceInfo.append(
-                    f"{type(switchAreaService).__name__}:{switchAreaMessageBusDef.id}")
-                runningServiceInstances.append(switchAreaService)
-#                switchAreaService.testYbusQueries()
-                switchAreaService.updateYbusService()
+            switchAreaMessageBusDef = MessageBusDefinition.load(switchConfigFile)
+            switchAreaMessageBusDefs[switchAreaMessageBusDef.id] = switchAreaMessageBusDef
+            switchAreaService = SwitchAreaAgentLevelStaticYbusService(feederMessageBusDef, switchAreaMessageBusDef,
+                                                                      serviceMetadata, None, simulationId)
+            runningYbusServiceInfo.append(f"{type(switchAreaService).__name__}:{switchAreaMessageBusDef.id}")
+            runningServiceInstances.append(switchAreaService)
+            # switchAreaService.testYbusQueries()
+            switchAreaService.updateYbusService()
     if len(secondaryAreaMessageBusConfigFiles) > 0 and len(switchAreaMessageBusConfigFiles) > 0:
         if len(switchAreaMessageBusDefs) == 0:
             for switchConfigFile in switchAreaMessageBusConfigFiles:
                 switchAreaMessageBusDef = MessageBusDefinition.load(switchConfigFile)
                 switchAreaMessageBusDefs[switchAreaMessageBusDef.id] = switchAreaMessageBusDef
         for secondaryConfigFile in secondaryAreaMessageBusConfigFiles:
-                secondaryAreaMessageBusDef = MessageBusDefinition.load(secondaryConfigFile)
-                secondaryAreaIdSplit = secondaryAreaMessageBusDef.id.split(".")
-                switchAreaId = secondaryAreaIdSplit[0] + "." + secondaryAreaIdSplit[1]
-                switchAreaMessageBusDef = switchAreaMessageBusDefs.get(switchAreaId)
-                if switchAreaMessageBusDef is None:
-                    logger.error(f"There is a missing upstream switch bus configuration for area id:{switchAreaId}")
-                    raise RuntimeError(f"There is a missing upstream switch bus configuration for area id:{switchAreaId}")
+            secondaryAreaMessageBusDef = MessageBusDefinition.load(secondaryConfigFile)
+            secondaryAreaIdSplit = secondaryAreaMessageBusDef.id.split(".")
+            switchAreaId = secondaryAreaIdSplit[0] + "." + secondaryAreaIdSplit[1]
+            switchAreaMessageBusDef = switchAreaMessageBusDefs.get(switchAreaId)
+            if switchAreaMessageBusDef is None:
+                logger.error(f"There is a missing upstream switch bus configuration for area id:{switchAreaId}")
+                raise RuntimeError(f"There is a missing upstream switch bus configuration for area id:{switchAreaId}")
+            else:
+                secondaryAreaService = SecondaryAreaAgentLevelStaticYbusService(switchAreaMessageBusDef,
+                                                                                secondaryAreaMessageBusDef,
+                                                                                serviceMetadata, None, simulationId)
+                if len(secondaryAreaService.agent_area_dict['addressable_equipment']) == 0 \
+                        and len(secondaryAreaService.agent_area_dict['unaddressable_equipment']) == 0:
+                    secondaryAreaService.disconnect()
                 else:
-                    secondaryAreaService = SecondaryAreaAgentLevelStaticYbusService(
-                        switchAreaMessageBusDef, secondaryAreaMessageBusDef, serviceMetadata,
-                        None, simulationId)
-                    if len(secondaryAreaService.agent_area_dict['addressable_equipment']) == 0 and len(secondaryAreaService.agent_area_dict['unaddressable_equipment']) == 0:
-                        secondaryAreaService.disconnect()
-                    else:
-                        runningYbusServiceInfo.append(
-                            f"{type(secondaryAreaService).__name__}:{secondaryAreaMessageBusDef.id}"
-                        )
-                        runningServiceInstances.append(secondaryAreaService)
-    #                    secondaryAreaService.testYbusQueries()
-                        secondaryAreaService.updateYbusService()
+                    runningYbusServiceInfo.append(
+                        f"{type(secondaryAreaService).__name__}:{secondaryAreaMessageBusDef.id}")
+                    runningServiceInstances.append(secondaryAreaService)
+                    # secondaryAreaService.testYbusQueries()
+                    secondaryAreaService.updateYbusService()
     servicesAreRunning = True
     print("Ybus services are running!")
     while servicesAreRunning:
         try:
             for service in runningServiceInstances:
-                #TODO: check to see if service instance is still running
+                # TODO: check to see if service instance is still running
                 servicesAreRunning = True
         except KeyboardInterrupt:
             exitStr = "Manually exiting distributed static Ybus service for the following areas:"
@@ -377,29 +382,47 @@ def main(**kwargs):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    serviceConfigHelpStr = "Variable keyword arguments that provide user defined distributed area agent configuration files."
+    serviceConfigHelpStr = "Variable keyword arguments that provide user defined distributed area agent configuration \
+        files."
+
     serviceConfigHelpStr += "\nValid keywords are as follows:"
     serviceConfigHelpStr += "\n\tSYSTEM_BUS_CONFIG_FILE=<full path of the system bus configuration file>."
     serviceConfigHelpStr += "\n\tFEEDER_BUS_CONFIG_FILE=<full path of the feeder bus configuration file>."
-    serviceConfigHelpStr += "\n\tSWITCH_BUS_CONFIG_FILE_DIR=<full path to the directory containing the switch bus configuration file(s)>."
-    serviceConfigHelpStr += "\n\tSECONDARY_BUS_CONFIG_FILE_DIR=<full path to the directory containing the secondary bus configuration file(s)>."
-    serviceConfigHelpStr += "\n\tBATCH_RUN_CONFIG_DIR=<full path to the directory containing configuration folders for all field bus levels>."
-    serviceConfigHelpStr += "\n\t\tThis variable should not be specified in combination with SYSTEM_BUS_CONFIG_FILE, FEEDER_BUS_CONFIG_FILE, SWITCH_BUS_CONFIG_FILE_DIR, and SECONDARY_BUS_CONFIG_FILE_DIR, as it will override those values."
-    serviceConfigHelpStr += "\n\t\tThe directory needs to contain at least one of the following folder names: feeder_level, secondary_level, switch_level, and/or system_level."
+    serviceConfigHelpStr += "\n\tSWITCH_BUS_CONFIG_FILE_DIR=<full path to the directory containing the switch bus \
+        configuration file(s)>."
+
+    serviceConfigHelpStr += "\n\tSECONDARY_BUS_CONFIG_FILE_DIR=<full path to the directory containing the secondary \
+        bus configuration file(s)>."
+
+    serviceConfigHelpStr += "\n\tBATCH_RUN_CONFIG_DIR=<full path to the directory containing configuration folders for \
+        all field bus levels>."
+
+    serviceConfigHelpStr += "\n\t\tThis variable should not be specified in combination with SYSTEM_BUS_CONFIG_FILE, \
+        FEEDER_BUS_CONFIG_FILE, SWITCH_BUS_CONFIG_FILE_DIR, and SECONDARY_BUS_CONFIG_FILE_DIR, as it will override \
+        those values."
+
+    serviceConfigHelpStr += "\n\t\tThe directory needs to contain at least one of the following folder names: \
+        feeder_level, secondary_level, switch_level, and/or system_level."
+
     serviceConfigHelpStr += "\n\tSIMULATION_ID=<simulation id>."
     parser.add_argument("service_configurations", nargs="+", help=serviceConfigHelpStr)
     args = parser.parse_args()
     switchBusConfigFiles = []
     secondaryBusConfigFiles = []
-    validKeywords = ["BATCH_RUN_CONFIG_DIR","SYSTEM_BUS_CONFIG_FILE", "FEEDER_BUS_CONFIG_FILE", "SWITCH_BUS_CONFIG_FILE_DIR", "SECONDARY_BUS_CONFIG_FILE_DIR","SIMULATION_ID"]
+    validKeywords = [
+        "BATCH_RUN_CONFIG_DIR", "SYSTEM_BUS_CONFIG_FILE", "FEEDER_BUS_CONFIG_FILE", "SWITCH_BUS_CONFIG_FILE_DIR",
+        "SECONDARY_BUS_CONFIG_FILE_DIR", "SIMULATION_ID"
+    ]
     mainArgs = {}
     for arg in args.service_configurations:
         argSplit = arg.split("=", maxsplit=1)
         if argSplit[0] in validKeywords:
             mainArgs[argSplit[0]] = argSplit[1]
         else:
-            logger.error(f"Invalid keyword argument, {argSplit[0]}, was given by the user. Valid keywords are {validKeywords}.")
-            raise RuntimeError(f"Invalid keyword argument, {argSplit[0]}, was given by the user. Valid keywords are {validKeywords}.")
+            logger.error(
+                f"Invalid keyword argument, {argSplit[0]}, was given by the user. Valid keywords are {validKeywords}.")
+            raise RuntimeError(
+                f"Invalid keyword argument, {argSplit[0]}, was given by the user. Valid keywords are {validKeywords}.")
     if len(mainArgs) == 0:
         logger.error(f"No arguments were provided by the user. Valid keywords are {validKeywords}.")
         raise RuntimeError(f"No arguments were provided by the user. Valid keywords are {validKeywords}.")
@@ -439,8 +462,8 @@ if __name__ == "__main__":
         for file in Path(secondaryBusConfigFileDir).iterdir():
             if file.suffix == ".yml":
                 secondaryBusConfigFiles.append(file.resolve())
-    main(system_bus_config_file=systemBusConfigFile, 
-         feeder_bus_config_file=feederBusConfigFile, 
-         switch_bus_config_files=switchBusConfigFiles, 
-         secondary_bus_config_files=secondaryBusConfigFiles, 
+    main(system_bus_config_file=systemBusConfigFile,
+         feeder_bus_config_file=feederBusConfigFile,
+         switch_bus_config_files=switchBusConfigFiles,
+         secondary_bus_config_files=secondaryBusConfigFiles,
          simulation_id=simID)

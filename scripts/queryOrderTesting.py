@@ -14,112 +14,243 @@ class ComplexEncoder(json.JSONEncoder):
             for r in range(dims[0]):
                 rl = []
                 for c in range(dims[1]):
-                    rl.append(obj[r,c])
+                    rl.append(obj[r, c])
                 rv.append(rl)
             return rv
         else:
             return json.JSONEncoder.default(self, obj)
-        
 
-lineConfig = [
-    {
-        'line_config': {'value': '1'},
-        'count': {'value': '3'}, 
-        'r_ohm_per_m': {'value': '0.00028676281'}, 
-        'x_ohm_per_m': {'value': '0.00066182246'}, 
-        'row': {'value': '3'}, 'col': {'value': '3'}
+
+lineConfig = [{
+    'line_config': {
+        'value': '1'
     },
-    {
-        'line_config': {'value': '1'}, 
-        'count': {'value': '3'}, 
-        'r_ohm_per_m': {'value': '0.0002899318'}, 
-        'x_ohm_per_m': {'value': '0.00065132128'}, 
-        'row': {'value': '2'}, 
-        'col': {'value': '2'}
+    'count': {
+        'value': '3'
     },
-    {
-        'line_config': {'value': '1'}, 
-        'count': {'value': '3'}, 
-        'r_ohm_per_m': {'value': '0.000095380479'}, 
-        'x_ohm_per_m': {'value': '0.00023916577'}, 
-        'row': {'value': '3'}, 
-        'col': {'value': '1'}
+    'r_ohm_per_m': {
+        'value': '0.00028676281'
     },
-    {
-        'line_config': {'value': '1'}, 
-        'count': {'value': '3'}, 
-        'r_ohm_per_m': {'value': '0.000098176647'}, 
-        'x_ohm_per_m': {'value': '0.00026321284'}, 
-        'row': {'value': '3'}, 
-        'col': {'value': '2'}
+    'x_ohm_per_m': {
+        'value': '0.00066182246'
     },
-    {
-        'line_config': {'value': '1'}, 
-        'count': {'value': '3'}, 
-        'r_ohm_per_m': {'value': '0.000096933907'}, 
-        'x_ohm_per_m': {'value': '0.00031174193'}, 
-        'row': {'value': '2'}, 
-        'col': {'value': '1'}
+    'row': {
+        'value': '3'
     },
-    {
-        'line_config': {'value': '1'}, 
-        'count': {'value': '3'}, 
-        'r_ohm_per_m': {'value': '0.00028433946'}, 
-        'x_ohm_per_m': {'value': '0.00066983815'}, 
-        'row': {'value': '1'}, 
-        'col': {'value': '1'}
+    'col': {
+        'value': '3'
     }
-]
-aclines = [
-    {
-        'line_name': {'value': 'l3'}, 
-        'length': {'value': '91.44'}, 
-        'line_config': {'value': '1'}, 
-        'bus1': {'value': '1'}, 
-        'bus2': {'value': '7'}, 
-        'phase': {'value': 'A'}
+}, {
+    'line_config': {
+        'value': '1'
     },
-    {
-        'line_name': {'value': 'l3'}, 
-        'length': {'value': '91.44'}, 
-        'line_config': {'value': '1'}, 
-        'bus1': {'value': '1'}, 
-        'bus2': {'value': '7'}, 
-        'phase': {'value': 'C'}
+    'count': {
+        'value': '3'
     },
-    {
-        'line_name': {'value': 'l35'}, 
-        'length': {'value': '91.44'}, 
-        'line_config': {'value': '1'}, 
-        'bus1': {'value': '5'}, 
-        'bus2': {'value': '7'}, 
-        'phase': {'value': 'B'}
+    'r_ohm_per_m': {
+        'value': '0.0002899318'
     },
-    {
-        'line_name': {'value': 'l3'}, 
-        'length': {'value': '91.44'}, 
-        'line_config': {'value': '1'}, 
-        'bus1': {'value': '1'}, 
-        'bus2': {'value': '7'}, 
-        'phase': {'value': 'B'}
+    'x_ohm_per_m': {
+        'value': '0.00065132128'
     },
-    {
-        'line_name': {'value': 'l35'}, 
-        'length': {'value': '91.44'}, 
-        'line_config': {'value': '1'}, 
-        'bus1': {'value': '5'}, 
-        'bus2': {'value': '7'}, 
-        'phase': {'value': 'A'}
+    'row': {
+        'value': '2'
     },
-    {
-        'line_name': {'value': 'l35'}, 
-        'length': {'value': '91.44'}, 
-        'line_config': {'value': '1'}, 
-        'bus1': {'value': '5'}, 
-        'bus2': {'value': '7'}, 
-        'phase': {'value': 'C'}
-    }      
-]
+    'col': {
+        'value': '2'
+    }
+}, {
+    'line_config': {
+        'value': '1'
+    },
+    'count': {
+        'value': '3'
+    },
+    'r_ohm_per_m': {
+        'value': '0.000095380479'
+    },
+    'x_ohm_per_m': {
+        'value': '0.00023916577'
+    },
+    'row': {
+        'value': '3'
+    },
+    'col': {
+        'value': '1'
+    }
+}, {
+    'line_config': {
+        'value': '1'
+    },
+    'count': {
+        'value': '3'
+    },
+    'r_ohm_per_m': {
+        'value': '0.000098176647'
+    },
+    'x_ohm_per_m': {
+        'value': '0.00026321284'
+    },
+    'row': {
+        'value': '3'
+    },
+    'col': {
+        'value': '2'
+    }
+}, {
+    'line_config': {
+        'value': '1'
+    },
+    'count': {
+        'value': '3'
+    },
+    'r_ohm_per_m': {
+        'value': '0.000096933907'
+    },
+    'x_ohm_per_m': {
+        'value': '0.00031174193'
+    },
+    'row': {
+        'value': '2'
+    },
+    'col': {
+        'value': '1'
+    }
+}, {
+    'line_config': {
+        'value': '1'
+    },
+    'count': {
+        'value': '3'
+    },
+    'r_ohm_per_m': {
+        'value': '0.00028433946'
+    },
+    'x_ohm_per_m': {
+        'value': '0.00066983815'
+    },
+    'row': {
+        'value': '1'
+    },
+    'col': {
+        'value': '1'
+    }
+}]
+aclines = [{
+    'line_name': {
+        'value': 'l3'
+    },
+    'length': {
+        'value': '91.44'
+    },
+    'line_config': {
+        'value': '1'
+    },
+    'bus1': {
+        'value': '1'
+    },
+    'bus2': {
+        'value': '7'
+    },
+    'phase': {
+        'value': 'A'
+    }
+}, {
+    'line_name': {
+        'value': 'l3'
+    },
+    'length': {
+        'value': '91.44'
+    },
+    'line_config': {
+        'value': '1'
+    },
+    'bus1': {
+        'value': '1'
+    },
+    'bus2': {
+        'value': '7'
+    },
+    'phase': {
+        'value': 'C'
+    }
+}, {
+    'line_name': {
+        'value': 'l35'
+    },
+    'length': {
+        'value': '91.44'
+    },
+    'line_config': {
+        'value': '1'
+    },
+    'bus1': {
+        'value': '5'
+    },
+    'bus2': {
+        'value': '7'
+    },
+    'phase': {
+        'value': 'B'
+    }
+}, {
+    'line_name': {
+        'value': 'l3'
+    },
+    'length': {
+        'value': '91.44'
+    },
+    'line_config': {
+        'value': '1'
+    },
+    'bus1': {
+        'value': '1'
+    },
+    'bus2': {
+        'value': '7'
+    },
+    'phase': {
+        'value': 'B'
+    }
+}, {
+    'line_name': {
+        'value': 'l35'
+    },
+    'length': {
+        'value': '91.44'
+    },
+    'line_config': {
+        'value': '1'
+    },
+    'bus1': {
+        'value': '5'
+    },
+    'bus2': {
+        'value': '7'
+    },
+    'phase': {
+        'value': 'A'
+    }
+}, {
+    'line_name': {
+        'value': 'l35'
+    },
+    'length': {
+        'value': '91.44'
+    },
+    'line_config': {
+        'value': '1'
+    },
+    'bus1': {
+        'value': '5'
+    },
+    'bus2': {
+        'value': '7'
+    },
+    'phase': {
+        'value': 'C'
+    }
+}]
 
 
 def fillYbusUnique(bus1: str, bus2: str, Yval: float, Ybus: Dict, debugYbusDict):
@@ -197,6 +328,7 @@ def fillYbusSwapLines(bus1: str, bus2: str, Yval: float, Ybus: Dict, debugYbusDi
     fillYbusAdd(bus1, node1 + '.' + phase2, -Yval, Ybus, debugYbusDict)
     fillYbusAdd(node2 + '.' + phase1, bus2, -Yval, Ybus, debugYbusDict)
 
+
 def main():
     Ybus = {}
     debugYbusDict = {}
@@ -218,7 +350,6 @@ def main():
         Zabc[line_config][row - 1, col - 1] = complex(r_ohm_per_m, x_ohm_per_m)
         if row != col:
             Zabc[line_config][col - 1, row - 1] = complex(r_ohm_per_m, x_ohm_per_m)
-
 
     ybusPhaseIdx = {'A': '.1', 'B': '.2', 'C': '.3', 's1': '.1', 's2': '.2'}
     last_name = ''
@@ -245,8 +376,8 @@ def main():
         # we now have the negated inverted matrix for comparison
         line_idx += 1
         if Ycomp.size == 1:
-            fillYbusNoSwapLines(bus1 + ybusPhaseIdx[phase], bus2 + ybusPhaseIdx[phase],
-                                Ycomp[0, 0], Ybus, debugYbusDict)
+            fillYbusNoSwapLines(bus1 + ybusPhaseIdx[phase], bus2 + ybusPhaseIdx[phase], Ycomp[0, 0], Ybus,
+                                debugYbusDict)
         elif Ycomp.size == 4:
             if line_idx == 1:
                 pair_i0b1 = bus1 + ybusPhaseIdx[phase]
@@ -273,7 +404,7 @@ def main():
                 fillYbusSwapLines(pair_i2b1, pair_i0b2, Ycomp[2, 0], Ybus, debugYbusDict)
                 fillYbusSwapLines(pair_i2b1, pair_i1b2, Ycomp[2, 1], Ybus, debugYbusDict)
                 fillYbusNoSwapLines(pair_i2b1, pair_i2b2, Ycomp[2, 2], Ybus, debugYbusDict)
-    print(json.dumps(Ybus,indent=4,sort_keys=True,cls=ComplexEncoder))
+    print(json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder))
 
 
 if __name__ == "__main__":

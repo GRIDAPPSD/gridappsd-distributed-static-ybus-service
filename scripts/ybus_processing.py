@@ -5,6 +5,7 @@ from typing import Any
 
 
 class GridappsdJsonEncoder(json.JSONEncoder):
+
     def default(self, obj: Any) -> Any:
         rv = None
         if isinstance(obj, complex):
@@ -28,7 +29,7 @@ def main():
             feederVal = ybus["feederYbus.json"][bus1][bus2]
             switchVal = feederVal
             for i in range(6):
-                switchVal = ybus.get(f"switch{i}.json", {}).get(bus1,{}).get(bus2)
+                switchVal = ybus.get(f"switch{i}.json", {}).get(bus1, {}).get(bus2)
                 if switchVal is not None:
                     break
             if switchVal is not None:
@@ -37,9 +38,10 @@ def main():
                 if bus2 not in ybusDiff[bus1].keys():
                     ybusDiff[bus1][bus2] = {}
                 diff = [(feederVal[0] - switchVal[0]), (feederVal[1] - switchVal[1])]
-                if diff[0] != 0.0 or diff[1] != 0.0: 
+                if diff[0] != 0.0 or diff[1] != 0.0:
                     ybusDiff[bus1][bus2]["error"] = [(feederVal[0] - switchVal[0]), (feederVal[1] - switchVal[1])]
-                    ybusDiff[bus1][bus2]["percentError"] = [(feederVal[0] - switchVal[0])*100.0/feederVal[0], (feederVal[1] - switchVal[1])*100.0/feederVal[1]]
+                    ybusDiff[bus1][bus2]["percentError"] = [(feederVal[0] - switchVal[0]) * 100.0 / feederVal[0],
+                                                            (feederVal[1] - switchVal[1]) * 100.0 / feederVal[1]]
                 else:
                     del ybusDiff[bus1][bus2]
     delKeys = []

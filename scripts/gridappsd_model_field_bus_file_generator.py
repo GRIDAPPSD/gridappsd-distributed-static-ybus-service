@@ -4,7 +4,7 @@ from pathlib import Path
 import yaml
 
 fieldBusConfigBoilerPlate = {
-    "connections":{
+    "connections": {
         "id": "otbus",
         "is_ot_bus": True,
         "connection_type": "CONNECTION_TYPE_GRIDAPPSD",
@@ -16,7 +16,7 @@ fieldBusConfigBoilerPlate = {
     }
 }
 modelInfo = {
-    "ieee13nodecktassets":{
+    "ieee13nodecktassets": {
         "id": "_5B816B93-7A5F-B64C-8460-47C17D6E4B0F",
         "switchAreas": 1
     },
@@ -54,13 +54,13 @@ for mod in modelInfo.keys():
     if not systemConfigDir.is_dir():
         systemConfigDir.mkdir(parents=True)
     systemConfigFile = systemConfigDir / "system-message-bus.yml"
-    with systemConfigFile.open(mode="w",encoding="utf-8") as scf:
+    with systemConfigFile.open(mode="w", encoding="utf-8") as scf:
         yaml.safe_dump(fieldBusConfigBoilerPlate, scf)
     feederConfigDir = rootDir / "service_config_files" / mod / "feeder_level"
     if not feederConfigDir.is_dir():
         feederConfigDir.mkdir(parents=True)
     feederConfigFile = feederConfigDir / "feeder-message-bus.yml"
-    with feederConfigFile.open(mode="w",encoding="utf-8") as fcf:
+    with feederConfigFile.open(mode="w", encoding="utf-8") as fcf:
         feederConfig = deepcopy(fieldBusConfigBoilerPlate)
         feederConfig["connections"]["id"] = modelInfo[mod]["id"]
         yaml.safe_dump(feederConfig, fcf)
@@ -71,7 +71,7 @@ for mod in modelInfo.keys():
             switchConfigDir.mkdir(parents=True)
         for i in range(switchAreas):
             switchConfigFile = switchConfigDir / f"switch_area_message_bus_{i}.yml"
-            with switchConfigFile.open(mode="w",encoding="utf-8") as scf:
+            with switchConfigFile.open(mode="w", encoding="utf-8") as scf:
                 switchConfig = deepcopy(fieldBusConfigBoilerPlate)
                 switchConfig["connections"]["id"] = f"{modelInfo[mod]['id']}.{i}"
                 yaml.safe_dump(switchConfig, scf)
@@ -83,7 +83,7 @@ for mod in modelInfo.keys():
         for sw in secondaryAreas.keys():
             for i in range(secondaryAreas[sw]):
                 secondaryConfigFile = secondaryConfigDir / f"secondary_area_message_bus_{sw}_{i}.yml"
-                with secondaryConfigFile.open(mode="w",encoding="utf-8") as scf:
+                with secondaryConfigFile.open(mode="w", encoding="utf-8") as scf:
                     secondaryConfig = deepcopy(fieldBusConfigBoilerPlate)
                     secondaryConfig["connections"]["id"] = f"{modelInfo[mod]['id']}.{sw}.{i}"
                     yaml.safe_dump(secondaryConfig, scf)
