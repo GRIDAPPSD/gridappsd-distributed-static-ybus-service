@@ -51,7 +51,7 @@ import numpy as np
 
 # TODO: query gridappsd-python for correct cim_profile instead of hardcoding it.
 cim_profile = CIM_PROFILE.RC4_2021.value
-agents_mod.set_cim_profile(cim_profile)
+agents_mod.set_cim_profile(cim_profile, iec61970_301=7)
 cim = agents_mod.cim
 logger = logging.getLogger(__name__)
 
@@ -75,41 +75,43 @@ class ComplexEncoder(json.JSONEncoder):
 
 
 def initializeCimProfile(distributedArea: DistributedArea):
-    cimUtils.get_all_data(distributedArea)
-    # distributedArea.get_all_edges(cim.ACLineSegment)
-    # distributedArea.get_all_edges(cim.TransformerTank)
-    # distributedArea.get_all_edges(cim.PowerTransformer)
-    # distributedArea.get_all_edges(cim.LoadBreakSwitch)
-    # distributedArea.get_all_edges(cim.Recloser)
-    # distributedArea.get_all_edges(cim.Breaker)
-    # distributedArea.get_all_edges(cim.Fuse)
-    # distributedArea.get_all_edges(cim.Sectionaliser)
-    # distributedArea.get_all_edges(cim.Jumper)
-    # distributedArea.get_all_edges(cim.Disconnector)
-    # distributedArea.get_all_edges(cim.GroundDisconnector)
-    # distributedArea.get_all_edges(cim.LinearShuntCompensator)
-    # distributedArea.get_all_edges(cim.PerLengthPhaseImpedance)
-    # distributedArea.get_all_edges(cim.PerLengthSequenceImpedance)
-    # distributedArea.get_all_edges(cim.ACLineSegmentPhase)
-    # distributedArea.get_all_edges(cim.WireSpacingInfo)
-    # distributedArea.get_all_edges(cim.PowerTransformerEnd)
-    # distributedArea.get_all_edges(cim.TransformerEnd)
-    # distributedArea.get_all_edges(cim.TransformerMeshImpedance)
-    # distributedArea.get_all_edges(cim.TransformerTankInfo)
-    # distributedArea.get_all_edges(cim.TransformerTankEnd)
-    # distributedArea.get_all_edges(cim.SwitchPhase)
-    # distributedArea.get_all_edges(cim.LinearShuntCompensatorPhase)
-    # distributedArea.get_all_edges(cim.Terminal)
-    # distributedArea.get_all_edges(cim.BaseVoltage)
-    # distributedArea.get_all_edges(cim.WirePosition)
-    # distributedArea.get_all_edges(cim.OverheadWireInfo)
-    # distributedArea.get_all_edges(cim.ConcentricNeutralCableInfo)
-    # distributedArea.get_all_edges(cim.TapeShieldCableInfo)
-    # distributedArea.get_all_edges(cim.TransformerEndInfo)
-    # distributedArea.get_all_edges(cim.TransformerCoreAdmittance)
-    # distributedArea.get_all_edges(cim.PhaseImpedanceData)
-    # distributedArea.get_all_edges(cim.ShortCircuitTest)
-    # distributedArea.get_all_edges(cim.NoLoadTest)
+    # cimUtils.get_all_data(distributedArea)
+    distributedArea.get_all_edges(cim.ACLineSegment)
+    distributedArea.get_all_edges(cim.PowerTransformer)
+    distributedArea.get_all_edges(cim.TransformerTank)
+    distributedArea.get_all_edges(cim.Asset)
+    distributedArea.get_all_edges(cim.LoadBreakSwitch)
+    distributedArea.get_all_edges(cim.Recloser)
+    distributedArea.get_all_edges(cim.Breaker)
+    distributedArea.get_all_edges(cim.Fuse)
+    distributedArea.get_all_edges(cim.Sectionaliser)
+    distributedArea.get_all_edges(cim.Jumper)
+    distributedArea.get_all_edges(cim.Disconnector)
+    distributedArea.get_all_edges(cim.GroundDisconnector)
+    distributedArea.get_all_edges(cim.LinearShuntCompensator)
+    distributedArea.get_all_edges(cim.PerLengthPhaseImpedance)
+    distributedArea.get_all_edges(cim.PerLengthSequenceImpedance)
+    distributedArea.get_all_edges(cim.ACLineSegmentPhase)
+    distributedArea.get_all_edges(cim.WireSpacingInfo)
+    distributedArea.get_all_edges(cim.PowerTransformerEnd)
+    distributedArea.get_all_edges(cim.TransformerEnd)
+    distributedArea.get_all_edges(cim.TransformerMeshImpedance)
+    distributedArea.get_all_edges(cim.TransformerTankEnd)
+    distributedArea.get_all_edges(cim.TransformerTankInfo)
+    distributedArea.get_all_edges(cim.SwitchPhase)
+    distributedArea.get_all_edges(cim.LinearShuntCompensatorPhase)
+    distributedArea.get_all_edges(cim.Terminal)
+    distributedArea.get_all_edges(cim.ConnectivityNode)
+    distributedArea.get_all_edges(cim.BaseVoltage)
+    distributedArea.get_all_edges(cim.WirePosition)
+    distributedArea.get_all_edges(cim.OverheadWireInfo)
+    distributedArea.get_all_edges(cim.ConcentricNeutralCableInfo)
+    distributedArea.get_all_edges(cim.TapeShieldCableInfo)
+    distributedArea.get_all_edges(cim.TransformerEndInfo)
+    distributedArea.get_all_edges(cim.TransformerCoreAdmittance)
+    distributedArea.get_all_edges(cim.PhaseImpedanceData)
+    distributedArea.get_all_edges(cim.ShortCircuitTest)
+    distributedArea.get_all_edges(cim.NoLoadTest)
 
 
 def perLengthPhaseImpedanceLineConfigs(distributedArea: DistributedArea) -> List[Dict]:
@@ -140,15 +142,15 @@ def perLengthPhaseImpedanceLineConfigs(distributedArea: DistributedArea) -> List
                         dictContainsNone = True
                         nullAttributes.append(i)
                 if len(nullAttributes) > 0:
-                    logger.debug(
-                        f"perLengthPhaseImpedanceLineConfigs():PerLengthImpedance:{perLengthImpedance.name} contained \
-                        the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                    logger.debug(f"perLengthPhaseImpedanceLineConfigs():PerLengthImpedance:{perLengthImpedance.name} "
+                                 "contained the following Null attributes:\n"
+                                 f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                     nullAttributes.clear()
                 if len(desiredInfo) > 0 and not dictContainsNone:
                     rv.append(copy.deepcopy(desiredInfo))
                 desiredInfo.clear()
-    logger.debug(
-        f'perLengthPhaseImpdenaceLineConfigs for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'perLengthPhaseImpdenaceLineConfigs for {distributedAreaID} returns: '
+                 f'{json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -169,7 +171,7 @@ def perLengthPhaseImpedanceLineNames(distributedArea: DistributedArea) -> List[D
                         desiredInfo["bus1"] = {"value": terminal.ConnectivityNode.name}
                     elif int(terminal.sequenceNumber) == 2:
                         desiredInfo["bus2"] = {"value": terminal.ConnectivityNode.name}
-                desiredInfo["phase"] = {"value": acLineSegmentPhase.phase[0]}
+                desiredInfo["phase"] = {"value": acLineSegmentPhase.phase.value}
                 dictContainsNone = False
                 nullAttributes = []
                 for i, v in desiredInfo.items():
@@ -177,15 +179,14 @@ def perLengthPhaseImpedanceLineNames(distributedArea: DistributedArea) -> List[D
                         dictContainsNone = True
                         nullAttributes.append(i)
                 if len(nullAttributes) > 0:
-                    logger.debug(
-                        f"perLengthPhaseImpedanceLineNames():ACLineSegment:{line.name} contained the following Null \
-                        attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                    logger.debug(f"perLengthPhaseImpedanceLineNames():ACLineSegment:{line.name} contained the "
+                                 f"following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                     nullAttributes.clear()
                 if len(desiredInfo) > 0 and not dictContainsNone:
                     rv.append(copy.deepcopy(desiredInfo))
                 desiredInfo.clear()
-    logger.debug(
-        f'perLengthPhaseImpedanceLineNames for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'perLengthPhaseImpedanceLineNames for {distributedAreaID} returns: '
+                 f'{json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -215,15 +216,15 @@ def perLengthSequenceImpedanceLineConfigs(distributedArea: DistributedArea) -> L
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(
-                    f"perLengthSequenceImpedanceLineConfigs():perLenghtSequenceImpedance:{sequenceImpedance.name} \
-                    contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                logger.debug("perLengthSequenceImpedanceLineConfigs():perLenghtSequenceImpedance:"
+                             f"{sequenceImpedance.name} contained the following Null attributes:\n"
+                             f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-    logger.debug(f'perLengthSequenceImpedanceLineConfigs for {distributedAreaID} returns: \
-        {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'perLengthSequenceImpedanceLineConfigs for {distributedAreaID} returns: '
+                 f'{json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -250,16 +251,14 @@ def perLengthSequenceImpedanceLineNames(distributedArea: DistributedArea) -> Lis
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(
-                    f"perLengthSequenceImpedanceLineNames():ACLineSegment:{line.name} contained the following Null \
-                    attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                logger.debug(f"perLengthSequenceImpedanceLineNames():ACLineSegment:{line.name} contained the following "
+                             f"Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-    logger.debug(
-        f'perLengthSequenceImpedanceLineNames for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}'
-    )
+    logger.debug(f'perLengthSequenceImpedanceLineNames for {distributedAreaID} returns: '
+                 f'{json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -288,9 +287,8 @@ def acLineSegmentLineNames(distributedArea: DistributedArea) -> List[Dict]:
                 dictContainsNone = True
                 nullAttributes.append(i)
         if len(nullAttributes) > 0:
-            logger.debug(
-                f"acLineSegmentLineNames():ACLineSegment:{line.name} contained the following Null attributes:\n\
-                {json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+            logger.debug(f"acLineSegmentLineNames():ACLineSegment:{line.name} contained the following Null attributes:"
+                         f"\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
             nullAttributes.clear()
         if len(desiredInfo) > 0 and not dictContainsNone:
             rv.append(copy.deepcopy(desiredInfo))
@@ -326,9 +324,8 @@ def wireInfoSpacing(distributedArea: DistributedArea) -> List[Dict]:
                         dictContainsNone = True
                         nullAttributes.append(i)
                 if len(nullAttributes) > 0:
-                    logger.debug(
-                        f"wireInfoSpacing():WireSpacingInfo:{wireSpacingInfo.name} contained the following Null \
-                        attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                    logger.debug(f"wireInfoSpacing():WireSpacingInfo:{wireSpacingInfo.name} contained the following "
+                                 f"Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                     nullAttributes.clear()
                 if len(desiredInfo) > 0 and not dictContainsNone:
                     rv.append(copy.deepcopy(desiredInfo))
@@ -365,8 +362,8 @@ def wireInfoOverhead(distributedArea: DistributedArea) -> List[Dict]:
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(f"wireInfoOverhead():ACLineSegment:{line.name} contained the following Null attributes:\n\
-                    {json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                logger.debug(f"wireInfoOverhead():ACLineSegment:{line.name} contained the following Null attributes:\n"
+                             f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
@@ -408,8 +405,9 @@ def wireInfoConcentricNeutral(distributedArea: DistributedArea) -> List[Dict]:
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(f"wireInfoConcentricNeutral():ConcentricNeutralCableInfo:{concentricNeutralWireInfo.name} \
-                    contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                logger.debug(f"wireInfoConcentricNeutral():ConcentricNeutralCableInfo:{concentricNeutralWireInfo.name} "
+                             "contained the following Null attributes:\n"
+                             f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
@@ -448,9 +446,8 @@ def wireInfoTapeShield(distributedArea: DistributedArea) -> List[Dict]:
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(
-                    f"wireInfoTapeShield():TapeShieldCableInfo:{tapeShieldWireInfo.name} contained the following Null \
-                    attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                logger.debug(f"wireInfoTapeShield():TapeShieldCableInfo:{tapeShieldWireInfo.name} contained the "
+                             f"following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
@@ -483,7 +480,7 @@ def wireInfoLineNames(distributedArea) -> List[Dict]:
                 desiredInfo["wire_cn_ts"] = {"value": acLineSegmentPhase.WireInfo.name}
             else:
                 desiredInfo["wire_cn_ts"] = {"value": None}
-            desiredInfo["phase"] = {"value": acLineSegmentPhase.phase[0]}
+            desiredInfo["phase"] = {"value": acLineSegmentPhase.phase.value}
             desiredInfo["wireinfo"] = {"value": type(acLineSegmentPhase.WireInfo).__name__}
             dictContainsNone = False
             nullAttributes = []
@@ -492,8 +489,8 @@ def wireInfoLineNames(distributedArea) -> List[Dict]:
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(f"wireInfoLineNames():ACLineSegment:{line.name} contained the following Null attributes:\n\
-                    {json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                logger.debug(f"wireInfoLineNames():ACLineSegment:{line.name} contained the following Null attributes:\n"
+                             f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 if desiredInfo["line_name"]["value"] not in rvDict.keys():
@@ -539,16 +536,15 @@ def powerTransformerEndXfmrImpedances(distributedArea: DistributedArea) -> List[
                                 dictContainsNone = True
                                 nullAttributes.append(i)
                         if len(nullAttributes) > 0:
-                            logger.debug(
-                                f"powerTransformerEndXfmrImpedances():PowerTransformer:{powerTransformer.name} \
-                                contained the following Null attributes:\n\
-                                {json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                            logger.debug("powerTransformerEndXfmrImpedances():PowerTransformer:"
+                                         f"{powerTransformer.name} contained the following Null attributes:\n"
+                                         f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                             nullAttributes.clear()
                         if len(desiredInfo) > 0 and not dictContainsNone:
                             rv.append(copy.deepcopy(desiredInfo))
                         desiredInfo.clear()
-    logger.debug(
-        f'powerTransformerEndXfmrImpedances for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'powerTransformerEndXfmrImpedances for {distributedAreaID} returns: '
+                 f'{json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -561,8 +557,8 @@ def powerTransformerEndXfmrNames(distributedArea: DistributedArea) -> List[Dict]
     for powerTransformer in powerTransformers.values():
         for powerTransformerEnd in powerTransformer.PowerTransformerEnd:    # type: ignore
             desiredInfo["xfmr_name"] = {"value": powerTransformer.name}    # type: ignore
-            if isinstance(powerTransformerEnd.connectionKind, list):
-                desiredInfo["connection"] = {"value": powerTransformerEnd.connectionKind[0]}
+            if isinstance(powerTransformerEnd.connectionKind, cim.WindingConnection):
+                desiredInfo["connection"] = {"value": powerTransformerEnd.connectionKind.value}
             else:
                 desiredInfo["connection"] = {"value": None}
             desiredInfo["end_number"] = {"value": powerTransformerEnd.endNumber}
@@ -581,15 +577,14 @@ def powerTransformerEndXfmrNames(distributedArea: DistributedArea) -> List[Dict]
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(
-                    f"powerTransformerEndXfmrNames():PowerTransformer:{powerTransformer.name} contained the following \
-                    Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                logger.debug(f"powerTransformerEndXfmrNames():PowerTransformer:{powerTransformer.name} contained the "
+                             f"following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-    logger.debug(
-        f'powerTransformerEndXfmrNames for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'powerTransformerEndXfmrNames for {distributedAreaID} returns: '
+                 f'{json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -601,27 +596,51 @@ def transformerTankXfmrRated(distributedArea: DistributedArea) -> List[Dict]:
     desiredInfo = {}
     for transformerTank in transformerTanks.values():
         transformerTankInfo = transformerTank.TransformerTankInfo    # type: ignore
-        for transformerEndInfo in transformerTankInfo.TransformerEndInfos:
-            desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
-            desiredInfo["connection"] = {"value": transformerEndInfo.connectionKind[0]}
-            desiredInfo["enum"] = {"value": transformerEndInfo.endNumber}
-            desiredInfo["ratedS"] = {"value": transformerEndInfo.ratedS}
-            desiredInfo["ratedU"] = {"value": transformerEndInfo.ratedU}
-            desiredInfo["r_ohm"] = {"value": transformerEndInfo.r}
-            dictContainsNone = False
-            nullAttributes = []
-            for i, v in desiredInfo.items():
-                if v["value"] is None:
-                    dictContainsNone = True
-                    nullAttributes.append(i)
-            if len(nullAttributes) > 0:
-                logger.debug(
-                    f"transformerTankXfmrRated():TransformerTank:{transformerTank.name} contained the following Null \
-                    attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
-                nullAttributes.clear()
-            if len(desiredInfo) > 0 and not dictContainsNone:
-                rv.append(copy.deepcopy(desiredInfo))
-            desiredInfo.clear()
+        if transformerTankInfo is not None:
+            for transformerEndInfo in transformerTankInfo.TransformerEndInfos:
+                desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
+                desiredInfo["connection"] = {"value": transformerEndInfo.connectionKind.value}
+                desiredInfo["enum"] = {"value": transformerEndInfo.endNumber}
+                desiredInfo["ratedS"] = {"value": transformerEndInfo.ratedS}
+                desiredInfo["ratedU"] = {"value": transformerEndInfo.ratedU}
+                desiredInfo["r_ohm"] = {"value": transformerEndInfo.r}
+                dictContainsNone = False
+                nullAttributes = []
+                for i, v in desiredInfo.items():
+                    if v["value"] is None:
+                        dictContainsNone = True
+                        nullAttributes.append(i)
+                if len(nullAttributes) > 0:
+                    logger.debug(f"transformerTankXfmrRated():TransformerTank:{transformerTank.name} contained the "
+                                 f"following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                    nullAttributes.clear()
+                if len(desiredInfo) > 0 and not dictContainsNone:
+                    rv.append(copy.deepcopy(desiredInfo))
+                desiredInfo.clear()
+        else:
+            for asset in transformerTank.Assets:
+                if isinstance(asset.AssetInfo, cim.TransformerTankInfo):
+                    for transformerEndInfo in asset.AssetInfo.TransformerEndInfos:
+                        desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
+                        desiredInfo["connection"] = {"value": transformerEndInfo.connectionKind.value}
+                        desiredInfo["enum"] = {"value": transformerEndInfo.endNumber}
+                        desiredInfo["ratedS"] = {"value": transformerEndInfo.ratedS}
+                        desiredInfo["ratedU"] = {"value": transformerEndInfo.ratedU}
+                        desiredInfo["r_ohm"] = {"value": transformerEndInfo.r}
+                        dictContainsNone = False
+                        nullAttributes = []
+                        for i, v in desiredInfo.items():
+                            if v["value"] is None:
+                                dictContainsNone = True
+                                nullAttributes.append(i)
+                        if len(nullAttributes) > 0:
+                            logger.debug(f"transformerTankXfmrRated():TransformerTank:{transformerTank.name} contained "
+                                         "the following Null attributes:\n"
+                                         f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                            nullAttributes.clear()
+                        if len(desiredInfo) > 0 and not dictContainsNone:
+                            rv.append(copy.deepcopy(desiredInfo))
+                        desiredInfo.clear()
     logger.debug(f'transformerTankXfmrRated for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
@@ -634,49 +653,96 @@ def transformerTankXfmrSct(distributedArea: DistributedArea) -> List[Dict]:
     desiredInfo = {}
     for transformerTank in transformerTanks.values():
         transformerTankInfo = transformerTank.TransformerTankInfo    # type: ignore
-        for transformerEndInfo in transformerTankInfo.TransformerEndInfos:
-            for shortCircuitTest in transformerEndInfo.EnergisedEndShortCircuitTests:
-                for groundedEnd in shortCircuitTest.GroundedEnds:
-                    desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
-                    desiredInfo["enum"] = {"value": shortCircuitTest.EnergisedEnd.endNumber}
-                    desiredInfo["gnum"] = {"value": groundedEnd.endNumber}
-                    desiredInfo["leakage_z"] = {"value": shortCircuitTest.leakageImpedance}
-                    dictContainsNone = False
-                    nullAttributes = []
-                    for i, v in desiredInfo.items():
-                        if v["value"] is None:
-                            dictContainsNone = True
-                            nullAttributes.append(i)
-                    if len(nullAttributes) > 0:
-                        logger.debug(
-                            f"transformerTankXfmrSct():TransformerTank:{transformerTank.name} contained the following \
-                            Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
-                        nullAttributes.clear()
-                    if len(desiredInfo) > 0 and not dictContainsNone:
-                        if desiredInfo not in rv:
-                            rv.append(copy.deepcopy(desiredInfo))
-                    desiredInfo.clear()
-            for shortCircuitTest in transformerEndInfo.GroundedEndShortCircuitTests:
-                for groundedEnd in shortCircuitTest.GroundedEnds:
-                    desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
-                    desiredInfo["enum"] = {"value": shortCircuitTest.EnergisedEnd.endNumber}
-                    desiredInfo["gnum"] = {"value": groundedEnd.endNumber}
-                    desiredInfo["leakage_z"] = {"value": shortCircuitTest.leakageImpedance}
-                    dictContainsNone = False
-                    nullAttributes = []
-                    for i, v in desiredInfo.items():
-                        if v["value"] is None:
-                            dictContainsNone = True
-                            nullAttributes.append(i)
-                    if len(nullAttributes) > 0:
-                        logger.debug(
-                            f"transformerTankXfmrSct():TransformerTank:{transformerTank.name} contained the following \
-                            Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
-                        nullAttributes.clear()
-                    if len(desiredInfo) > 0 and not dictContainsNone:
-                        if desiredInfo not in rv:
-                            rv.append(copy.deepcopy(desiredInfo))
-                    desiredInfo.clear()
+        if transformerTankInfo is not None:
+            for transformerEndInfo in transformerTankInfo.TransformerEndInfos:
+                for shortCircuitTest in transformerEndInfo.EnergisedEndShortCircuitTests:
+                    for groundedEnd in shortCircuitTest.GroundedEnds:
+                        desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
+                        desiredInfo["enum"] = {"value": shortCircuitTest.EnergisedEnd.endNumber}
+                        desiredInfo["gnum"] = {"value": groundedEnd.endNumber}
+                        desiredInfo["leakage_z"] = {"value": shortCircuitTest.leakageImpedance}
+                        dictContainsNone = False
+                        nullAttributes = []
+                        for i, v in desiredInfo.items():
+                            if v["value"] is None:
+                                dictContainsNone = True
+                                nullAttributes.append(i)
+                        if len(nullAttributes) > 0:
+                            logger.debug(f"transformerTankXfmrSct():TransformerTank:{transformerTank.name} contained "
+                                         "the following Null attributes:\n"
+                                         f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                            nullAttributes.clear()
+                        if len(desiredInfo) > 0 and not dictContainsNone:
+                            if desiredInfo not in rv:
+                                rv.append(copy.deepcopy(desiredInfo))
+                        desiredInfo.clear()
+                for shortCircuitTest in transformerEndInfo.GroundedEndShortCircuitTests:
+                    for groundedEnd in shortCircuitTest.GroundedEnds:
+                        desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
+                        desiredInfo["enum"] = {"value": shortCircuitTest.EnergisedEnd.endNumber}
+                        desiredInfo["gnum"] = {"value": groundedEnd.endNumber}
+                        desiredInfo["leakage_z"] = {"value": shortCircuitTest.leakageImpedance}
+                        dictContainsNone = False
+                        nullAttributes = []
+                        for i, v in desiredInfo.items():
+                            if v["value"] is None:
+                                dictContainsNone = True
+                                nullAttributes.append(i)
+                        if len(nullAttributes) > 0:
+                            logger.debug(f"transformerTankXfmrSct():TransformerTank:{transformerTank.name} contained "
+                                         "the following Null attributes:\n"
+                                         f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                            nullAttributes.clear()
+                        if len(desiredInfo) > 0 and not dictContainsNone:
+                            if desiredInfo not in rv:
+                                rv.append(copy.deepcopy(desiredInfo))
+                        desiredInfo.clear()
+        else:
+            for asset in transformerTank.Assets:
+                if isinstance(asset.AssetInfo, cim.TransformerTankInfo):
+                    for transformerEndInfo in asset.AssetInfo.TransformerEndInfos:
+                        for shortCircuitTest in transformerEndInfo.EnergisedEndShortCircuitTests:
+                            for groundedEnd in shortCircuitTest.GroundedEnds:
+                                desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
+                                desiredInfo["enum"] = {"value": shortCircuitTest.EnergisedEnd.endNumber}
+                                desiredInfo["gnum"] = {"value": groundedEnd.endNumber}
+                                desiredInfo["leakage_z"] = {"value": shortCircuitTest.leakageImpedance}
+                                dictContainsNone = False
+                                nullAttributes = []
+                                for i, v in desiredInfo.items():
+                                    if v["value"] is None:
+                                        dictContainsNone = True
+                                        nullAttributes.append(i)
+                                if len(nullAttributes) > 0:
+                                    logger.debug(f"transformerTankXfmrSct():TransformerTank:{transformerTank.name} "
+                                                 "contained the following Null attributes:\n"
+                                                 f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                                    nullAttributes.clear()
+                                if len(desiredInfo) > 0 and not dictContainsNone:
+                                    if desiredInfo not in rv:
+                                        rv.append(copy.deepcopy(desiredInfo))
+                                desiredInfo.clear()
+                        for shortCircuitTest in transformerEndInfo.GroundedEndShortCircuitTests:
+                            for groundedEnd in shortCircuitTest.GroundedEnds:
+                                desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
+                                desiredInfo["enum"] = {"value": shortCircuitTest.EnergisedEnd.endNumber}
+                                desiredInfo["gnum"] = {"value": groundedEnd.endNumber}
+                                desiredInfo["leakage_z"] = {"value": shortCircuitTest.leakageImpedance}
+                                dictContainsNone = False
+                                nullAttributes = []
+                                for i, v in desiredInfo.items():
+                                    if v["value"] is None:
+                                        dictContainsNone = True
+                                        nullAttributes.append(i)
+                                if len(nullAttributes) > 0:
+                                    logger.debug(f"transformerTankXfmrSct():TransformerTank:{transformerTank.name} "
+                                                 "contained the following Null attributes:\n"
+                                                 f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                                    nullAttributes.clear()
+                                if len(desiredInfo) > 0 and not dictContainsNone:
+                                    if desiredInfo not in rv:
+                                        rv.append(copy.deepcopy(desiredInfo))
+                                desiredInfo.clear()
     logger.debug(f'transformerTankXfmrSct for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
@@ -693,7 +759,7 @@ def transformerTankXfmrNames(distributedArea: DistributedArea) -> List[Dict]:
             desiredInfo["enum"] = {"value": transformerTankEnd.endNumber}
             desiredInfo["bus"] = {"value": transformerTankEnd.Terminal.ConnectivityNode.name}
             desiredInfo["baseV"] = {"value": transformerTankEnd.BaseVoltage.nominalVoltage}
-            desiredInfo["phase"] = {"value": transformerTankEnd.phases[0]}
+            desiredInfo["phase"] = {"value": transformerTankEnd.phases.value}
             dictContainsNone = False
             nullAttributes = []
             for i, v in desiredInfo.items():
@@ -701,9 +767,8 @@ def transformerTankXfmrNames(distributedArea: DistributedArea) -> List[Dict]:
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(
-                    f"transformerTankXfmrNames():TransformerTank:{transformerTank.name} contained the following Null \
-                        attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                logger.debug(f"transformerTankXfmrNames():TransformerTank:{transformerTank.name} contained the "
+                             f"following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
@@ -746,7 +811,7 @@ def switchingEquipmentSwitchNames(distributedArea: DistributedArea) -> List[Dict
                     if int(terminal.sequenceNumber) == 2:
                         desiredInfo["bus2"] = {"value": terminal.ConnectivityNode.name}
                 if switchPhase.phaseSide1 is not None:
-                    desiredInfo["phases_side1"] = {"value": switchPhase.phaseSide1[0]}
+                    desiredInfo["phases_side1"] = {"value": switchPhase.phaseSide1.value}
                 else:
                     desiredInfo["phases_side1"] = {"value": None}
                 dictContainsNone = False
@@ -756,8 +821,8 @@ def switchingEquipmentSwitchNames(distributedArea: DistributedArea) -> List[Dict
                         dictContainsNone = True
                         nullAttributes.append(i)
                 if len(nullAttributes) > 0:
-                    logger.debug(f"switchingEquipmentSwitchNames():Switch:{switchEq.name} contained the following Null \
-                        attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                    logger.debug(f"switchingEquipmentSwitchNames():Switch:{switchEq.name} contained the following Null "
+                                 f"attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                     nullAttributes.clear()
                 if len(desiredInfo) > 0 and not dictContainsNone:
                     rv.append(copy.deepcopy(desiredInfo))
@@ -778,15 +843,14 @@ def switchingEquipmentSwitchNames(distributedArea: DistributedArea) -> List[Dict
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(
-                    f"switchingEquipmentSwitchNames():Switch:{switchEq.name} contained the following Null attributes:\n\
-                    {json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                logger.debug(f"switchingEquipmentSwitchNames():Switch:{switchEq.name} contained the following Null "
+                             f"attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-    logger.debug(
-        f'switchingEquipmentSwitchNames for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'switchingEquipmentSwitchNames for {distributedAreaID} returns: '
+                 f'{json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -807,7 +871,7 @@ def shuntElementCapNames(distributedArea: DistributedArea) -> List[Dict]:
                     else:
                         desiredInfo["bus"] = {"value": None}
                 if shuntCompensatorPhase.phase is not None:
-                    desiredInfo["phase"] = {"value": shuntCompensatorPhase.phase[0]}
+                    desiredInfo["phase"] = {"value": shuntCompensatorPhase.phase.value}
                 dictContainsNone = False
                 nullAttributes = []
                 for i, v in desiredInfo.items():
@@ -815,9 +879,8 @@ def shuntElementCapNames(distributedArea: DistributedArea) -> List[Dict]:
                         dictContainsNone = True
                         nullAttributes.append(i)
                 if len(nullAttributes) > 0:
-                    logger.debug(
-                        f"shuntElementCapNames():Capacitor:{linearShuntCompensator.name} contained the following Null \
-                        attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                    logger.debug(f"shuntElementCapNames():Capacitor:{linearShuntCompensator.name} contained the "
+                                 f"following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                     nullAttributes.clear()
                 if len(desiredInfo) > 0 and not dictContainsNone:
                     rv.append(copy.deepcopy(desiredInfo))
@@ -837,9 +900,8 @@ def shuntElementCapNames(distributedArea: DistributedArea) -> List[Dict]:
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(
-                    f"shuntElementCapNames():Capacitor:{linearShuntCompensator.name} contained the following Null \
-                    attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                logger.debug(f"shuntElementCapNames():Capacitor:{linearShuntCompensator.name} contained the following "
+                             f"Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
@@ -857,25 +919,49 @@ def transformerTankXfmrNlt(distributedArea: DistributedArea) -> List[Dict]:
     desiredInfo = {}
     for transformerTank in transformerTanks.values():
         transformerTankInfo = transformerTank.TransformerTankInfo    # type: ignore
-        for transformerEndInfo in transformerTankInfo.TransformerEndInfos:
-            for noLoadTest in transformerEndInfo.EnergisedEndNoLoadTests:
-                desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
-                desiredInfo["noloadloss_kW"] = {"value": noLoadTest.loss}
-                desiredInfo["i_exciting"] = {"value": noLoadTest.excitingCurrent}
-                dictContainsNone = False
-                nullAttributes = []
-                for i, v in desiredInfo.items():
-                    if v["value"] is None:
-                        dictContainsNone = True
-                        nullAttributes.append(i)
-                if len(nullAttributes) > 0:
-                    logger.debug(
-                        f"transformerTankXfmrNlt():TransformerTank:{transformerTank.name} contained the following Null \
-                        attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
-                    nullAttributes.clear()
-                if len(desiredInfo) > 0 and not dictContainsNone:
-                    rv.append(copy.deepcopy(desiredInfo))
-                desiredInfo.clear()
+        if transformerTankInfo is not None:
+            for transformerEndInfo in transformerTankInfo.TransformerEndInfos:
+                for noLoadTest in transformerEndInfo.EnergisedEndNoLoadTests:
+                    desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
+                    desiredInfo["noloadloss_kW"] = {"value": noLoadTest.loss}
+                    desiredInfo["i_exciting"] = {"value": noLoadTest.excitingCurrent}
+                    dictContainsNone = False
+                    nullAttributes = []
+                    for i, v in desiredInfo.items():
+                        if v["value"] is None:
+                            dictContainsNone = True
+                            nullAttributes.append(i)
+                    if len(nullAttributes) > 0:
+                        logger.debug(f"transformerTankXfmrNlt():TransformerTank:{transformerTank.name} contained the "
+                                     "following Null attributes:\n"
+                                     f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                        nullAttributes.clear()
+                    if len(desiredInfo) > 0 and not dictContainsNone:
+                        rv.append(copy.deepcopy(desiredInfo))
+                    desiredInfo.clear()
+        else:
+            for asset in transformerTank.Assets:
+                if isinstance(asset.AssetInfo, cim.TransformerTankInfo):
+                    for transformerEndInfo in asset.AssetInfo.TransformerEndInfos:
+                        for noLoadTest in transformerEndInfo.EnergisedEndNoLoadTests:
+                            desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
+                            desiredInfo["noloadloss_kW"] = {"value": noLoadTest.loss}
+                            desiredInfo["i_exciting"] = {"value": noLoadTest.excitingCurrent}
+                            dictContainsNone = False
+                            nullAttributes = []
+                            for i, v in desiredInfo.items():
+                                if v["value"] is None:
+                                    dictContainsNone = True
+                                    nullAttributes.append(i)
+                            if len(nullAttributes) > 0:
+                                logger.debug(f"transformerTankXfmrNlt():TransformerTank:{transformerTank.name} "
+                                             "contained the following Null attributes:\n"
+                                             f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                                nullAttributes.clear()
+                            if len(desiredInfo) > 0 and not dictContainsNone:
+                                rv.append(copy.deepcopy(desiredInfo))
+                            desiredInfo.clear()
+
     logger.debug(f'transformerTankXfmrNlt for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
@@ -899,15 +985,15 @@ def powerTransformerEndXfmrAdmittances(distributedArea: DistributedArea) -> List
                         dictContainsNone = True
                         nullAttributes.append(i)
                 if len(nullAttributes) > 0:
-                    logger.debug(
-                        f"powerTransformerEndXfmrAdmittances():PowerTransformer:{powerTransformer.name} contained the \
-                        following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                    logger.debug(f"powerTransformerEndXfmrAdmittances():PowerTransformer:{powerTransformer.name} "
+                                 "contained the following Null attributes:\n"
+                                 f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                     nullAttributes.clear()
                 if len(desiredInfo) > 0 and not dictContainsNone:
                     rv.append(copy.deepcopy(desiredInfo))
                 desiredInfo.clear()
-    logger.debug(
-        f'powerTransformerEndXfmrAdmittances for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'powerTransformerEndXfmrAdmittances for {distributedAreaID} returns: '
+                 f'{json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -2179,37 +2265,37 @@ def calculateYbus(distributedArea: DistributedArea) -> Dict:
     Ybus = {}
     areaID = distributedArea.container.mRID
     fillYbusPerLengthPhaseImpedanceLines(distributedArea, Ybus)
-    logger.debug(f"Ybus for {areaID} after fillYbusPerLengthPhaseImpedanceLines is:\n\
-        {json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
+    logger.debug(f"Ybus for {areaID} after fillYbusPerLengthPhaseImpedanceLines is:\n"
+                 f"{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
     fillYbusPerLengthSequenceImpedanceLines(distributedArea, Ybus)
-    logger.debug(f"Ybus for {areaID} after fillYbusPerLengthSequenceImpedanceLines is:\n\
-        {json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
+    logger.debug(f"Ybus for {areaID} after fillYbusPerLengthSequenceImpedanceLines is:\n"
+                 f"{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
     fillYbusACLineSegmentLines(distributedArea, Ybus)
-    logger.debug(f"Ybus for {areaID} after fillYbusACLineSegmentLines is:\n\
-        {json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
+    logger.debug(f"Ybus for {areaID} after fillYbusACLineSegmentLines is:\n"
+                 f"{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
     fillYbusWireInfoAndWireSpacingInfoLines(distributedArea, Ybus)
-    logger.debug(f"Ybus for {areaID} after fillYbusWireInfoAndWireSpacingInfoLines is:\n\
-        {json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
+    logger.debug(f"Ybus for {areaID} after fillYbusWireInfoAndWireSpacingInfoLines is:\n"
+                 f"{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
     line_count = countUniqueYbus(Ybus)
     logger.debug(f'Line_model # entries: {line_count}')
     fillYbusPowerTransformerEndXfmrs(distributedArea, Ybus)
-    logger.debug(f"Ybus for {areaID} after fillYbusPowerTransformerEndXfmrs is:\n\
-        {json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
+    logger.debug(f"Ybus for {areaID} after fillYbusPowerTransformerEndXfmrs is:\n"
+                 f"{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
     fillYbusTransformerTankXfmrs(distributedArea, Ybus)
-    logger.debug(f"Ybus for {areaID} after fillYbusTransformerTankXfmrs is:\n\
-        {json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
+    logger.debug(f"Ybus for {areaID} after fillYbusTransformerTankXfmrs is:\n"
+                 f"{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
     count = countUniqueYbus(Ybus)
     xfmr_count = count - line_count
     logger.debug(f'Power_transformer # entries: {xfmr_count}')
     fillYbusSwitchingEquipmentSwitches(distributedArea, Ybus)
-    logger.debug(f"Ybus for {areaID} after fillYbusSwitchingEquipmentSwitches is:\n\
-        {json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
+    logger.debug(f"Ybus for {areaID} after fillYbusSwitchingEquipmentSwitches is:\n"
+                 f"{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
     count = countUniqueYbus(Ybus)
     switch_count = count - line_count - xfmr_count
     logger.debug(f'Switching_equipment # entries: {switch_count}')
     fillYbusShuntElementShunts(distributedArea, Ybus)
-    logger.debug(f"Ybus for {areaID} after fillYbusShuntElementShunts is:\n\
-        {json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
+    logger.debug(f"Ybus for {areaID} after fillYbusShuntElementShunts is:\n"
+                 f"{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
     logger.debug('Shunt_element contributions added (no new entries)')
     makeYbusSerializable(Ybus)
     return Ybus
