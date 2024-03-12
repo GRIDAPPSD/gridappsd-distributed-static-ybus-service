@@ -4,12 +4,12 @@ version = "0.1.0"
 description = ""
 authors = ["afisher1 <andrew.fisher@pnnl.gov>"]
 readme = "README.md"
-packages = [{include = "dsys"}]
+packages = []
 
 [tool.poetry.dependencies]
 python = "^3.10"
 numpy = "^1.24.3"
-gridappsd-field-bus = {version = "^2024.1.1a2", allow-prereleases = true}
+gridappsd-field-bus = {version = "^2024", allow-prereleases = true}
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.6.0"
