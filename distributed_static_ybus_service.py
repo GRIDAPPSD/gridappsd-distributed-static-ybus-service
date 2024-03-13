@@ -201,9 +201,9 @@ def main():
     serviceConfigHelpStr = "Variable keyword arguments that provide user defined distributed area agent " \
                            "configuration files. Valid keywords are as follows:SYSTEM_BUS_CONFIG_FILE=<full " \
                            "path of the system bus configuration file>. FEEDER_BUS_CONFIG_FILE=<full path of the " \
-                           "feeder bus configuration file>. SWITCH_BUS_CONFIG_FILE_DIR=<full path to the " \
+                           "feeder bus configuration file>. SWITCH_BUS_CONFIG_FILE=<full path to the " \
                            "directory containing the switch bus configuration file(s)>. " \
-                           "SECONDARY_BUS_CONFIG_FILE_DIR=<full path to the directory containing the secondary bus " \
+                           "SECONDARY_BUS_CONFIG_FILE=<full path to the directory containing the secondary bus " \
                            "configuration file(s)>. MODEL_MRID=<The desired model mrid to automatically start a " \
                            "ybus service for all the distributed areas for that model id>. This variable should " \
                            "not be specified in combination with SYSTEM_BUS_CONFIG_FILE, FEEDER_BUS_CONFIG_FILE, " \
@@ -212,11 +212,9 @@ def main():
                            "feeder_level, secondary_level, switch_level, and/or system_level."
     parser.add_argument("service_configurations", nargs="+", help=serviceConfigHelpStr)
     args = parser.parse_args()
-    switchBusConfigFiles = []
-    secondaryBusConfigFiles = {}
     validKeywords = [
-        "MODEL_MRID", "SYSTEM_BUS_CONFIG_FILE", "FEEDER_BUS_CONFIG_FILE", "SWITCH_BUS_CONFIG_FILE_DIR",
-        "SECONDARY_BUS_CONFIG_FILE_DIR", "SIMULATION_ID"
+        "MODEL_MRID", "SYSTEM_BUS_CONFIG_FILE", "FEEDER_BUS_CONFIG_FILE", "SWITCH_BUS_CONFIG_FILE",
+        "SECONDARY_BUS_CONFIG_FILE"
     ]
     mainArgs = {}
     for arg in args.service_configurations:
