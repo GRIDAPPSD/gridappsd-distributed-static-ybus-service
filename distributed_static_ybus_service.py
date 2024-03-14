@@ -234,20 +234,20 @@ def main():
     feederMessageBusConfigFile = mainArgs.get("FEEDER_BUS_CONFIG_FILE")
     switchAreaMessageBusConfigFile = mainArgs.get("SWITCH_BUS_CONFIG_FILE")
     secondaryAreaMessageBusConfigFile = mainArgs.get("SECONDARY_BUS_CONFIG_FILE")
-    if not isinstance(systemMessageBusConfigFile, Path) and systemMessageBusConfigFile is not None:
-        errorStr = f"system_bus_config_file isn't a Path type.\ntype: {type(systemMessageBusConfigFile)}"
+    if not isinstance(systemMessageBusConfigFile, str) and systemMessageBusConfigFile is not None:
+        errorStr = f"system_bus_config_file isn't a str type.\ntype: {type(systemMessageBusConfigFile)}"
         logger.error(errorStr)
         raise TypeError(errorStr)
-    if not isinstance(feederMessageBusConfigFile, Path) and feederMessageBusConfigFile is not None:
-        errorStr = f"feeder_bus_config_file isn't a Path type.\ntype: {type(feederMessageBusConfigFile)}"
+    if not isinstance(feederMessageBusConfigFile, str) and feederMessageBusConfigFile is not None:
+        errorStr = f"feeder_bus_config_file isn't a str type.\ntype: {type(feederMessageBusConfigFile)}"
         logger.error(errorStr)
         raise TypeError(errorStr)
-    if not isinstance(switchAreaMessageBusConfigFile, Path) and switchAreaMessageBusConfigFile is not None:
-        errorStr = f"switch_bus_config_file isn't a Path type.\ntype: {type(switchAreaMessageBusConfigFile)}"
+    if not isinstance(switchAreaMessageBusConfigFile, str) and switchAreaMessageBusConfigFile is not None:
+        errorStr = f"switch_bus_config_file isn't a str type.\ntype: {type(switchAreaMessageBusConfigFile)}"
         logger.error(errorStr)
         raise TypeError(errorStr)
-    if not isinstance(secondaryAreaMessageBusConfigFile, Path) and secondaryAreaMessageBusConfigFile is not None:
-        errorStr = f"secondary_bus_config_file isn't a Path type.\ntype: {type(secondaryAreaMessageBusConfigFile)}"
+    if not isinstance(secondaryAreaMessageBusConfigFile, str) and secondaryAreaMessageBusConfigFile is not None:
+        errorStr = f"secondary_bus_config_file isn't a str type.\ntype: {type(secondaryAreaMessageBusConfigFile)}"
         logger.error(errorStr)
         raise TypeError(errorStr)
     if not isinstance(modelMrid, str) and modelMrid is not None:
@@ -255,13 +255,12 @@ def main():
         logger.error(errorStr)
         raise TypeError(errorStr)
     serviceMetadata = {
-        "app_id": "static_ybus_service",
+        "app_id": "distributed_static_ybus_service",
         "description": "This is a GridAPPS-D distributed static ybus service agent."
     }
     servicesAreRunning = False
     runningYbusServiceInfo = []
     runningServiceInstances = []
-    systemMessageBusDef = None
     feederMessageBusDef = None
     switchAreaMessageBusDef = None
     if modelMrid is None:
