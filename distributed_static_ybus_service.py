@@ -300,7 +300,7 @@ def main():
         feederMessageBusDef = getMessageBusDefinition(modelMrid)
         logger.info(f"Creating Feeder Area Ybus Service for area id: {feederMessageBusDef.id}")
         feederYbusService = FeederAgentLevelStaticYbusService(systemMessageBusDef, feederMessageBusDef, serviceMetadata)
-        feederYbusService.updateYbusService()
+        #feederYbusService.updateYbusService()
         runningYbusServiceInfo.append(f"{type(feederYbusService).__name__}:{feederMessageBusDef.id}")
         runningServiceInstances.append(feederYbusService)
         for switchArea in feederYbusService.agent_area_dict.get('switch_areas', []):
@@ -310,7 +310,7 @@ def main():
                 logger.info(f"Creating Switch Area Ybus Service for area id: {switchAreaMessageBusDef.id}")
                 switchAreaService = SwitchAreaAgentLevelStaticYbusService(feederMessageBusDef, switchAreaMessageBusDef,
                                                                           serviceMetadata)
-                switchAreaService.updateYbusService()
+                #switchAreaService.updateYbusService()
                 runningYbusServiceInfo.append(f"{type(switchAreaService).__name__}:{switchAreaMessageBusDef.id}")
                 runningServiceInstances.append(switchAreaService)
                 for secondaryArea in switchArea.get('secondary_areas', []):
@@ -325,7 +325,7 @@ def main():
                                 len(secondaryAreaService.agent_area_dict['unaddressable_equipment']) == 0:
                             secondaryAreaService.disconnect()
                         else:
-                            secondaryAreaService.updateYbusService()
+                            #secondaryAreaService.updateYbusService()
                             runningYbusServiceInfo.append(f"{type(secondaryAreaService).__name__}:"
                                                           f"{secondaryAreaMessageBusDef.id}")
                             runningServiceInstances.append(secondaryAreaService)
