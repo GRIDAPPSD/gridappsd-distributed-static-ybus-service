@@ -112,6 +112,7 @@ def initializeCimProfile(distributedArea: DistributedArea):
     distributedArea.get_all_edges(cim.PhaseImpedanceData)
     distributedArea.get_all_edges(cim.ShortCircuitTest)
     distributedArea.get_all_edges(cim.NoLoadTest)
+    distributedArea.get_all_edges(cim.RatioTapChanger)
 
 
 def perLengthPhaseImpedanceLineConfigs(distributedArea: DistributedArea) -> List[Dict]:
