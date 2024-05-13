@@ -20,22 +20,22 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 # General disclaimer for use with OSS licenses
-#
+
 # This material was prepared as an account of work sponsored by an agency of the United States Government.
 # Neither the United States Government nor the United States Department of Energy, nor Battelle, nor any
 # of their employees, nor any jurisdiction or organization that has cooperated in the development of these
 # materials, makes any warranty, express or implied, or assumes any legal liability or responsibility for
 # the accuracy, completeness, or usefulness or any information, apparatus, product, software, or process
 # disclosed, or represents that its use would not infringe privately owned rights.
-#
+
 # Reference herein to any specific commercial product, process, or service by trade name, trademark, manufacturer,
 # or otherwise does not necessarily constitute or imply its endorsement, recommendation, or favoring by the United
 # States Government or any agency thereof, or Battelle Memorial Institute. The views and opinions of authors expressed
 # herein do not necessarily state or reflect those of the United States Government or any agency thereof.
-#
+
 # PACIFIC NORTHWEST NATIONAL LABORATORY operated by BATTELLE for the
 # UNITED STATES DEPARTMENT OF ENERGY under Contract DE-AC05-76RL01830
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 import copy
 import json
@@ -44,13 +44,14 @@ import math
 from typing import Dict, List
 
 from cimgraph.data_profile import CIM_PROFILE
-from cimgraph.models import DistributedModel, SwitchArea, SecondaryArea
+from cimgraph.models import DistributedArea
+import cimgraph.utils as cimUtils
 import gridappsd.field_interface.agents.agents as agents_mod
 import numpy as np
 
-#TODO: query gridappsd-python for correct cim_profile instead of hardcoding it.
+# TODO: query gridappsd-python for correct cim_profile instead of hardcoding it.
 cim_profile = CIM_PROFILE.RC4_2021.value
-agents_mod.set_cim_profile(cim_profile)
+agents_mod.set_cim_profile(cim_profile, iec61970_301=7)
 cim = agents_mod.cim
 logger = logging.getLogger(__name__)
 
@@ -60,61 +61,67 @@ class ComplexEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, complex):
             return [obj.real, obj.imag]
+        elif isinstance(obj, np.ndarray):
+            dims = obj.shape
+            rv = []
+            for r in range(dims[0]):
+                rl = []
+                for c in range(dims[1]):
+                    rl.append(obj[r, c])
+                rv.append(rl)
+            return rv
         else:
             return json.JSONEncoder.default(self, obj)
 
 
-def initializeCimProfile(distributedArea):
-    distributedArea.get_all_attributes(cim.ACLineSegment)
-    distributedArea.get_all_attributes(cim.TransformerTank)
-    distributedArea.get_all_attributes(cim.PowerTransformer)
-    distributedArea.get_all_attributes(cim.LoadBreakSwitch)
-    distributedArea.get_all_attributes(cim.Recloser)
-    distributedArea.get_all_attributes(cim.Breaker)
-    distributedArea.get_all_attributes(cim.Fuse)
-    distributedArea.get_all_attributes(cim.Sectionaliser)
-    distributedArea.get_all_attributes(cim.Jumper)
-    distributedArea.get_all_attributes(cim.Disconnector)
-    distributedArea.get_all_attributes(cim.GroundDisconnector)
-    distributedArea.get_all_attributes(cim.LinearShuntCompensator)
-    distributedArea.get_all_attributes(cim.PerLengthPhaseImpedance)
-    distributedArea.get_all_attributes(cim.PerLengthSequenceImpedance)
-    distributedArea.get_all_attributes(cim.ACLineSegmentPhase)
-    distributedArea.get_all_attributes(cim.WireSpacingInfo)
-    distributedArea.get_all_attributes(cim.PowerTransformerEnd)
-    distributedArea.get_all_attributes(cim.TransformerEnd)
-    distributedArea.get_all_attributes(cim.TransformerMeshImpedance)
-    distributedArea.get_all_attributes(cim.TransformerTankInfo)
-    distributedArea.get_all_attributes(cim.TransformerTankEnd)
-    distributedArea.get_all_attributes(cim.SwitchPhase)
-    distributedArea.get_all_attributes(cim.LinearShuntCompensatorPhase)
-    distributedArea.get_all_attributes(cim.Terminal)
-    distributedArea.get_all_attributes(cim.BaseVoltage)
-    distributedArea.get_all_attributes(cim.WirePosition)
-    distributedArea.get_all_attributes(cim.OverheadWireInfo)
-    distributedArea.get_all_attributes(cim.ConcentricNeutralCableInfo)
-    distributedArea.get_all_attributes(cim.TapeShieldCableInfo)
-    distributedArea.get_all_attributes(cim.TransformerEndInfo)
-    distributedArea.get_all_attributes(cim.TransformerCoreAdmittance)
-    distributedArea.get_all_attributes(cim.PhaseImpedanceData)
-    distributedArea.get_all_attributes(cim.ShortCircuitTest)
-    distributedArea.get_all_attributes(cim.NoLoadTest)
+def initializeCimProfile(distributedArea: DistributedArea):
+    # cimUtils.get_all_data(distributedArea)
+    distributedArea.get_all_edges(cim.ACLineSegment)
+    distributedArea.get_all_edges(cim.PowerTransformer)
+    distributedArea.get_all_edges(cim.TransformerTank)
+    distributedArea.get_all_edges(cim.Asset)
+    distributedArea.get_all_edges(cim.LoadBreakSwitch)
+    distributedArea.get_all_edges(cim.Recloser)
+    distributedArea.get_all_edges(cim.Breaker)
+    distributedArea.get_all_edges(cim.Fuse)
+    distributedArea.get_all_edges(cim.Sectionaliser)
+    distributedArea.get_all_edges(cim.Jumper)
+    distributedArea.get_all_edges(cim.Disconnector)
+    distributedArea.get_all_edges(cim.GroundDisconnector)
+    distributedArea.get_all_edges(cim.LinearShuntCompensator)
+    distributedArea.get_all_edges(cim.PerLengthPhaseImpedance)
+    distributedArea.get_all_edges(cim.PerLengthSequenceImpedance)
+    distributedArea.get_all_edges(cim.ACLineSegmentPhase)
+    distributedArea.get_all_edges(cim.WireSpacingInfo)
+    distributedArea.get_all_edges(cim.PowerTransformerEnd)
+    distributedArea.get_all_edges(cim.TransformerEnd)
+    distributedArea.get_all_edges(cim.TransformerMeshImpedance)
+    distributedArea.get_all_edges(cim.TransformerTankEnd)
+    distributedArea.get_all_edges(cim.TransformerTankInfo)
+    distributedArea.get_all_edges(cim.SwitchPhase)
+    distributedArea.get_all_edges(cim.LinearShuntCompensatorPhase)
+    distributedArea.get_all_edges(cim.Terminal)
+    distributedArea.get_all_edges(cim.ConnectivityNode)
+    distributedArea.get_all_edges(cim.BaseVoltage)
+    distributedArea.get_all_edges(cim.WirePosition)
+    distributedArea.get_all_edges(cim.OverheadWireInfo)
+    distributedArea.get_all_edges(cim.ConcentricNeutralCableInfo)
+    distributedArea.get_all_edges(cim.TapeShieldCableInfo)
+    distributedArea.get_all_edges(cim.TransformerEndInfo)
+    distributedArea.get_all_edges(cim.TransformerCoreAdmittance)
+    distributedArea.get_all_edges(cim.PhaseImpedanceData)
+    distributedArea.get_all_edges(cim.ShortCircuitTest)
+    distributedArea.get_all_edges(cim.NoLoadTest)
+    distributedArea.get_all_edges(cim.RatioTapChanger)
 
 
-
-def perLengthPhaseImpedanceLineConfigs(distributedArea) -> List[Dict]:
+def perLengthPhaseImpedanceLineConfigs(distributedArea: DistributedArea) -> List[Dict]:
     rv = []
-    acLineSegments = distributedArea.typed_catalog.get(cim.ACLineSegment, {}).keys()
-    perLengthImpedances = distributedArea.typed_catalog.get(cim.PerLengthPhaseImpedance, {})
+    acLineSegments = distributedArea.graph.get(cim.ACLineSegment, {}).keys()
+    perLengthImpedances = distributedArea.graph.get(cim.PerLengthPhaseImpedance, {})
     desiredInfo = {}
-    distributedAreaID = ""
-    if isinstance(distributedArea, DistributedModel):
-        distributedAreaID = distributedArea.feeder.mRID
-    else:
-        distributedAreaID = distributedArea.area_id
-    logger.debug(
-        f"performing perLengthPhaseImpedanceLineConfigs query for distributed area: {distributedAreaID}"
-    )
+    distributedAreaID = distributedArea.container.mRID
+    logger.debug(f"performing perLengthPhaseImpedanceLineConfigs query for distributed area: {distributedAreaID}")
     for perLengthImpedance in perLengthImpedances.values():
         configIsValid = False
         for line in perLengthImpedance.ACLineSegments:
@@ -124,9 +131,7 @@ def perLengthPhaseImpedanceLineConfigs(distributedArea) -> List[Dict]:
         if configIsValid:
             for phaseImpedanceData in perLengthImpedance.PhaseImpedanceData:    # type: ignore
                 desiredInfo["line_config"] = {"value": perLengthImpedance.name}    # type: ignore
-                desiredInfo["count"] = {
-                    "value": perLengthImpedance.conductorCount
-                }    # type: ignore
+                desiredInfo["count"] = {"value": perLengthImpedance.conductorCount}    # type: ignore
                 desiredInfo["r_ohm_per_m"] = {"value": phaseImpedanceData.r}
                 desiredInfo["x_ohm_per_m"] = {"value": phaseImpedanceData.x}
                 desiredInfo["row"] = {"value": phaseImpedanceData.row}
@@ -138,44 +143,36 @@ def perLengthPhaseImpedanceLineConfigs(distributedArea) -> List[Dict]:
                         dictContainsNone = True
                         nullAttributes.append(i)
                 if len(nullAttributes) > 0:
-                    logger.debug(
-                        f"perLengthPhaseImpedanceLineConfigs():PerLengthImpedance:{perLengthImpedance.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                    )
+                    logger.debug(f"perLengthPhaseImpedanceLineConfigs():PerLengthImpedance:{perLengthImpedance.name} "
+                                 "contained the following Null attributes:\n"
+                                 f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                     nullAttributes.clear()
                 if len(desiredInfo) > 0 and not dictContainsNone:
                     rv.append(copy.deepcopy(desiredInfo))
                 desiredInfo.clear()
-    logger.debug(
-        f'perLengthPhaseImpdenaceLineConfigs returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'perLengthPhaseImpdenaceLineConfigs for {distributedAreaID} returns: '
+                 f'{json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
-def perLengthPhaseImpedanceLineNames(distributedArea) -> List[Dict]:
+def perLengthPhaseImpedanceLineNames(distributedArea: DistributedArea) -> List[Dict]:
     rv = []
-    acLineSegments = distributedArea.typed_catalog.get(cim.ACLineSegment, {})
+    acLineSegments = distributedArea.graph.get(cim.ACLineSegment, {})
     desiredInfo = {}
-    distributedAreaID = ""
-    if isinstance(distributedArea, DistributedModel):
-        distributedAreaID = distributedArea.feeder.mRID
-    else:
-        distributedAreaID = distributedArea.area_id
-    logger.debug(
-        f"performing perLengthPhaseImpedanceLineNames query for distributed area: {distributedAreaID}"
-    )
+    distributedAreaID = distributedArea.container.mRID
+    logger.debug(f"performing perLengthPhaseImpedanceLineNames query for distributed area: {distributedAreaID}")
     for line in acLineSegments.values():
         if isinstance(line.PerLengthImpedance, cim.PerLengthPhaseImpedance):    # type: ignore
             for acLineSegmentPhase in line.ACLineSegmentPhases:    # type: ignore
                 desiredInfo["line_name"] = {"value": line.name}    # type: ignore
                 desiredInfo["length"] = {"value": line.length}    # type: ignore
-                desiredInfo["line_config"] = {
-                    "value": line.PerLengthImpedance.name
-                }    # type: ignore
+                desiredInfo["line_config"] = {"value": line.PerLengthImpedance.name}    # type: ignore
                 for terminal in line.Terminals:    # type: ignore
                     if int(terminal.sequenceNumber) == 1:
                         desiredInfo["bus1"] = {"value": terminal.ConnectivityNode.name}
                     elif int(terminal.sequenceNumber) == 2:
                         desiredInfo["bus2"] = {"value": terminal.ConnectivityNode.name}
-                desiredInfo["phase"] = {"value": acLineSegmentPhase.phase[0]}
+                desiredInfo["phase"] = {"value": acLineSegmentPhase.phase.value}
                 dictContainsNone = False
                 nullAttributes = []
                 for i, v in desiredInfo.items():
@@ -183,32 +180,24 @@ def perLengthPhaseImpedanceLineNames(distributedArea) -> List[Dict]:
                         dictContainsNone = True
                         nullAttributes.append(i)
                 if len(nullAttributes) > 0:
-                    logger.debug(
-                        f"perLengthPhaseImpedanceLineNames():ACLineSegment:{line.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                    )
+                    logger.debug(f"perLengthPhaseImpedanceLineNames():ACLineSegment:{line.name} contained the "
+                                 f"following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                     nullAttributes.clear()
                 if len(desiredInfo) > 0 and not dictContainsNone:
                     rv.append(copy.deepcopy(desiredInfo))
                 desiredInfo.clear()
-    logger.debug(
-        f'perLengthPhaseImpedanceLineNames returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'perLengthPhaseImpedanceLineNames for {distributedAreaID} returns: '
+                 f'{json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
-def perLengthSequenceImpedanceLineConfigs(distributedArea) -> List[Dict]:
+def perLengthSequenceImpedanceLineConfigs(distributedArea: DistributedArea) -> List[Dict]:
     rv = []
-    if isinstance(distributedArea, DistributedModel):
-        distributedAreaID = distributedArea.feeder.mRID
-    else:
-        distributedAreaID = distributedArea.area_id
-    logger.debug(
-        f"performing perLengthSequenceImpedanceLineConfigs query for distributed area: {distributedAreaID}"
-    )
-    acLineSegments = distributedArea.typed_catalog.get(cim.ACLineSegment, {}).keys()
-    perLengthSequenceImpedances = distributedArea.typed_catalog.get(cim.PerLengthSequenceImpedance,
-                                                                    {})
+    distributedAreaID = distributedArea.container.mRID
+    logger.debug(f"performing perLengthSequenceImpedanceLineConfigs query for distributed area: {distributedAreaID}")
+    acLineSegments = distributedArea.graph.get(cim.ACLineSegment, {}).keys()
+    perLengthSequenceImpedances = distributedArea.graph.get(cim.PerLengthSequenceImpedance, {})
     desiredInfo = {}
-    distributedAreaID = ""
     for sequenceImpedance in perLengthSequenceImpedances.values():
         sequenceImpedanceIsValid = False
         for line in sequenceImpedance.ACLineSegments:
@@ -228,28 +217,23 @@ def perLengthSequenceImpedanceLineConfigs(distributedArea) -> List[Dict]:
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(
-                    f"perLengthSequenceImpedanceLineConfigs():perLenghtSequenceImpedance:{sequenceImpedance.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                )
+                logger.debug("perLengthSequenceImpedanceLineConfigs():perLenghtSequenceImpedance:"
+                             f"{sequenceImpedance.name} contained the following Null attributes:\n"
+                             f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-    logger.debug(
-        f'perLengthSequenceImpedanceLineConfigs returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'perLengthSequenceImpedanceLineConfigs for {distributedAreaID} returns: '
+                 f'{json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
-def perLengthSequenceImpedanceLineNames(distributedArea) -> List[Dict]:
+def perLengthSequenceImpedanceLineNames(distributedArea: DistributedArea) -> List[Dict]:
     rv = []
-    if isinstance(distributedArea, DistributedModel):
-        distributedAreaID = distributedArea.feeder.mRID
-    else:
-        distributedAreaID = distributedArea.area_id
-    logger.debug(
-        f"performing perLengthSequenceImpedanceLineNames query for distributed area: {distributedAreaID}"
-    )
-    acLineSegments = distributedArea.typed_catalog.get(cim.ACLineSegment, {})
+    distributedAreaID = distributedArea.container.mRID
+    logger.debug(f"performing perLengthSequenceImpedanceLineNames query for distributed area: {distributedAreaID}")
+    acLineSegments = distributedArea.graph.get(cim.ACLineSegment, {})
     desiredInfo = {}
     for line in acLineSegments.values():
         if isinstance(line.PerLengthImpedance, cim.PerLengthSequenceImpedance):    # type: ignore
@@ -268,27 +252,22 @@ def perLengthSequenceImpedanceLineNames(distributedArea) -> List[Dict]:
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(
-                    f"perLengthSequenceImpedanceLineNames():ACLineSegment:{line.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                )
+                logger.debug(f"perLengthSequenceImpedanceLineNames():ACLineSegment:{line.name} contained the following "
+                             f"Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-    logger.debug(
-        f'perLengthSequenceImpedanceLineNames returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'perLengthSequenceImpedanceLineNames for {distributedAreaID} returns: '
+                 f'{json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
-def acLineSegmentLineNames(distributedArea) -> List[Dict]:
+def acLineSegmentLineNames(distributedArea: DistributedArea) -> List[Dict]:
     rv = []
-    if isinstance(distributedArea, DistributedModel):
-        distributedAreaID = distributedArea.feeder.mRID
-    else:
-        distributedAreaID = distributedArea.area_id
-    logger.debug(
-        f"performing acLineSegmentLineNames query for distributed area: {distributedAreaID}")
-    acLineSegments = distributedArea.typed_catalog.get(cim.ACLineSegment, {})
+    distributedAreaID = distributedArea.container.mRID
+    logger.debug(f"performing acLineSegmentLineNames query for distributed area: {distributedAreaID}")
+    acLineSegments = distributedArea.graph.get(cim.ACLineSegment, {})
     desiredInfo = {}
     for line in acLineSegments.values():
         desiredInfo["line_name"] = {"value": line.name}    # type: ignore
@@ -309,26 +288,22 @@ def acLineSegmentLineNames(distributedArea) -> List[Dict]:
                 dictContainsNone = True
                 nullAttributes.append(i)
         if len(nullAttributes) > 0:
-            logger.debug(
-                f"acLineSegmentLineNames():ACLineSegment:{line.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-            )
+            logger.debug(f"acLineSegmentLineNames():ACLineSegment:{line.name} contained the following Null attributes:"
+                         f"\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
             nullAttributes.clear()
         if len(desiredInfo) > 0 and not dictContainsNone:
             rv.append(copy.deepcopy(desiredInfo))
         desiredInfo.clear()
-    logger.debug(f'acLineSegmentLineNames returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'acLineSegmentLineNames for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
-def wireInfoSpacing(distributedArea) -> List[Dict]:
+def wireInfoSpacing(distributedArea: DistributedArea) -> List[Dict]:
     rv = []
-    if isinstance(distributedArea, DistributedModel):
-        distributedAreaID = distributedArea.feeder.mRID
-    else:
-        distributedAreaID = distributedArea.area_id
+    distributedAreaID = distributedArea.container.mRID
     logger.debug(f"performing wireInfoSpacing query for distributed area: {distributedAreaID}")
-    acLineSegments = distributedArea.typed_catalog.get(cim.ACLineSegment, {})
-    wireSpacingInfos = distributedArea.typed_catalog.get(cim.WireSpacingInfo, {})
+    acLineSegments = distributedArea.graph.get(cim.ACLineSegment, {})
+    wireSpacingInfos = distributedArea.graph.get(cim.WireSpacingInfo, {})
     desiredInfo = {}
     for wireSpacingInfo in wireSpacingInfos.values():
         infoIsValid = False
@@ -338,9 +313,7 @@ def wireInfoSpacing(distributedArea) -> List[Dict]:
                 break
         if infoIsValid:
             for p in wireSpacingInfo.WirePositions:    # type: ignore
-                desiredInfo["wire_spacing_info"] = {
-                    "value": wireSpacingInfo.name
-                }    # type: ignore
+                desiredInfo["wire_spacing_info"] = {"value": wireSpacingInfo.name}    # type: ignore
                 desiredInfo["cable"] = {"value": wireSpacingInfo.isCable}    # type: ignore
                 desiredInfo["seq"] = {"value": p.sequenceNumber}
                 desiredInfo["xCoord"] = {"value": p.xCoord}
@@ -352,26 +325,22 @@ def wireInfoSpacing(distributedArea) -> List[Dict]:
                         dictContainsNone = True
                         nullAttributes.append(i)
                 if len(nullAttributes) > 0:
-                    logger.debug(
-                        f"wireInfoSpacing():WireSpacingInfo:{wireSpacingInfo.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                    )
+                    logger.debug(f"wireInfoSpacing():WireSpacingInfo:{wireSpacingInfo.name} contained the following "
+                                 f"Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                     nullAttributes.clear()
                 if len(desiredInfo) > 0 and not dictContainsNone:
                     rv.append(copy.deepcopy(desiredInfo))
                 desiredInfo.clear()
-    logger.debug(f'wireInfoSpacing returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'wireInfoSpacing for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
-def wireInfoOverhead(distributedArea) -> List[Dict]:
+def wireInfoOverhead(distributedArea: DistributedArea) -> List[Dict]:
     rv = []
-    if isinstance(distributedArea, DistributedModel):
-        distributedAreaID = distributedArea.feeder.mRID
-    else:
-        distributedAreaID = distributedArea.area_id
+    distributedAreaID = distributedArea.container.mRID
     logger.debug(f"performing wireInfoOverhead query for distributed area: {distributedAreaID}")
-    acLineSegments = distributedArea.typed_catalog.get(cim.ACLineSegment, {})
-    overheadWireInfos = distributedArea.typed_catalog.get(cim.OverheadWireInfo,{})
+    acLineSegments = distributedArea.graph.get(cim.ACLineSegment, {})
+    overheadWireInfos = distributedArea.graph.get(cim.OverheadWireInfo, {})
     desiredInfo = {}
     for overheadWireInfo in overheadWireInfos.values():
         infoIsValid = False
@@ -394,27 +363,22 @@ def wireInfoOverhead(distributedArea) -> List[Dict]:
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(
-                    f"wireInfoOverhead():ACLineSegment:{line.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                )
+                logger.debug(f"wireInfoOverhead():ACLineSegment:{line.name} contained the following Null attributes:\n"
+                             f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-    logger.debug(f'wireInfoOverhead returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'wireInfoOverhead for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
-def wireInfoConcentricNeutral(distributedArea) -> List[Dict]:
+def wireInfoConcentricNeutral(distributedArea: DistributedArea) -> List[Dict]:
     rv = []
-    if isinstance(distributedArea, DistributedModel):
-        distributedAreaID = distributedArea.feeder.mRID
-    else:
-        distributedAreaID = distributedArea.area_id
-    logger.debug(
-        f"performing wireInfoConcentricNeutral query for distributed area: {distributedAreaID}")
-    acLineSegments = distributedArea.typed_catalog.get(cim.ACLineSegment, {})
-    concentricNeutralWireInfos = distributedArea.typed_catalog.get(cim.ConcentricNeutralCableInfo,{})
+    distributedAreaID = distributedArea.container.mRID
+    logger.debug(f"performing wireInfoConcentricNeutral query for distributed area: {distributedAreaID}")
+    acLineSegments = distributedArea.graph.get(cim.ACLineSegment, {})
+    concentricNeutralWireInfos = distributedArea.graph.get(cim.ConcentricNeutralCableInfo, {})
     desiredInfo = {}
     for concentricNeutralWireInfo in concentricNeutralWireInfos.values():
         infoIsValid = False
@@ -430,15 +394,9 @@ def wireInfoConcentricNeutral(distributedArea) -> List[Dict]:
             desiredInfo["wire_cn_ts"] = {"value": concentricNeutralWireInfo.name}
             desiredInfo["gmr"] = {"value": concentricNeutralWireInfo.gmr}
             desiredInfo["r25"] = {"value": concentricNeutralWireInfo.rAC25}
-            desiredInfo["diameter_jacket"] = {
-                "value": concentricNeutralWireInfo.diameterOverJacket
-            }
-            desiredInfo["strand_count"] = {
-                "value": concentricNeutralWireInfo.neutralStrandCount
-            }
-            desiredInfo["strand_radius"] = {
-                "value": concentricNeutralWireInfo.neutralStrandRadius
-            }
+            desiredInfo["diameter_jacket"] = {"value": concentricNeutralWireInfo.diameterOverJacket}
+            desiredInfo["strand_count"] = {"value": concentricNeutralWireInfo.neutralStrandCount}
+            desiredInfo["strand_radius"] = {"value": concentricNeutralWireInfo.neutralStrandRadius}
             desiredInfo["strand_gmr"] = {"value": concentricNeutralWireInfo.neutralStrandGmr}
             desiredInfo["strand_rdc"] = {"value": concentricNeutralWireInfo.neutralStrandRDC20}
             dictContainsNone = False
@@ -448,26 +406,23 @@ def wireInfoConcentricNeutral(distributedArea) -> List[Dict]:
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(
-                    f"wireInfoConcentricNeutral():ConcentricNeutralCableInfo:{concentricNeutralWireInfo.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                )
+                logger.debug(f"wireInfoConcentricNeutral():ConcentricNeutralCableInfo:{concentricNeutralWireInfo.name} "
+                             "contained the following Null attributes:\n"
+                             f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-    logger.debug(f'wireInfoConcentricNeutral returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'wireInfoConcentricNeutral for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
-def wireInfoTapeShield(distributedArea) -> List[Dict]:
+def wireInfoTapeShield(distributedArea: DistributedArea) -> List[Dict]:
     rv = []
-    if isinstance(distributedArea, DistributedModel):
-        distributedAreaID = distributedArea.feeder.mRID
-    else:
-        distributedAreaID = distributedArea.area_id
+    distributedAreaID = distributedArea.container.mRID
     logger.debug(f"performing wireInfoTapeShield query for distributed area: {distributedAreaID}")
-    acLineSegments = distributedArea.typed_catalog.get(cim.ACLineSegment, {})
-    tapeShieldWireInfos = distributedArea.typed_catalog.get(cim.TapeShieldCableInfo,{})
+    acLineSegments = distributedArea.graph.get(cim.ACLineSegment, {})
+    tapeShieldWireInfos = distributedArea.graph.get(cim.TapeShieldCableInfo, {})
     desiredInfo = {}
     for tapeShieldWireInfo in tapeShieldWireInfos.values():
         infoIsValid = False
@@ -492,27 +447,22 @@ def wireInfoTapeShield(distributedArea) -> List[Dict]:
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(
-                    f"wireInfoTapeShield():TapeShieldCableInfo:{tapeShieldWireInfo.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                )
+                logger.debug(f"wireInfoTapeShield():TapeShieldCableInfo:{tapeShieldWireInfo.name} contained the "
+                             f"following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-    logger.debug(f'wireInfoTapeShield returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'wireInfoTapeShield for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
-def wireInfoLineNames(
-        distributedArea) -> List[Dict]:
+def wireInfoLineNames(distributedArea) -> List[Dict]:
     rv = []
     rvDict = {}
-    if isinstance(distributedArea, DistributedModel):
-        distributedAreaID = distributedArea.feeder.mRID
-    else:
-        distributedAreaID = distributedArea.area_id
+    distributedAreaID = distributedArea.container.mRID
     logger.debug(f"performing wireInfoLineNames query for distributed area: {distributedAreaID}")
-    acLineSegments = distributedArea.typed_catalog.get(cim.ACLineSegment, {})
+    acLineSegments = distributedArea.graph.get(cim.ACLineSegment, {})
     desiredInfo = {}
     for line in acLineSegments.values():
         for acLineSegmentPhase in line.ACLineSegmentPhases:    # type: ignore
@@ -524,16 +474,14 @@ def wireInfoLineNames(
                 elif int(terminal.sequenceNumber) == 2:
                     desiredInfo["bus2"] = {"value": terminal.ConnectivityNode.name}
             if isinstance(line.WireSpacingInfo, cim.WireSpacingInfo):
-                desiredInfo["wire_spacing_info"] = {
-                    "value": line.WireSpacingInfo.name
-                }    # type: ignore
+                desiredInfo["wire_spacing_info"] = {"value": line.WireSpacingInfo.name}    # type: ignore
             else:
                 desiredInfo["wire_spacing_info"] = {"value": None}    # type: ignore
             if isinstance(acLineSegmentPhase.WireInfo, cim.WireInfo):
                 desiredInfo["wire_cn_ts"] = {"value": acLineSegmentPhase.WireInfo.name}
             else:
                 desiredInfo["wire_cn_ts"] = {"value": None}
-            desiredInfo["phase"] = {"value": acLineSegmentPhase.phase[0]}
+            desiredInfo["phase"] = {"value": acLineSegmentPhase.phase.value}
             desiredInfo["wireinfo"] = {"value": type(acLineSegmentPhase.WireInfo).__name__}
             dictContainsNone = False
             nullAttributes = []
@@ -542,36 +490,36 @@ def wireInfoLineNames(
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(
-                    f"wireInfoLineNames():ACLineSegment:{line.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                )
+                logger.debug(f"wireInfoLineNames():ACLineSegment:{line.name} contained the following Null attributes:\n"
+                             f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 if desiredInfo["line_name"]["value"] not in rvDict.keys():
-                    rvDict[desiredInfo["line_name"]["value"]] = {"A": None, "B": None, "C": None, "s1": None, "s2": None, "N": None}
+                    rvDict[desiredInfo["line_name"]["value"]] = {
+                        "A": None,
+                        "B": None,
+                        "C": None,
+                        "s1": None,
+                        "s2": None,
+                        "N": None
+                    }
                 rvDict[desiredInfo["line_name"]["value"]][desiredInfo["phase"]["value"]] = copy.deepcopy(desiredInfo)
                 desiredInfo.clear()
     for k in rvDict.keys():
-        for phs in ["A","B","C","s1","s2","N"]:
+        for phs in ["A", "B", "C", "s1", "s2", "N"]:
             if rvDict[k][phs] is not None:
                 rv.append(copy.deepcopy(rvDict[k][phs]))
-    logger.debug(f'wireInfoLineNames returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'wireInfoLineNames for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
-def powerTransformerEndXfmrImpedances(
-        distributedArea) -> List[Dict]:
+def powerTransformerEndXfmrImpedances(distributedArea: DistributedArea) -> List[Dict]:
     rv = []
-    if isinstance(distributedArea, DistributedModel):
-        distributedAreaID = distributedArea.feeder.mRID
-    else:
-        distributedAreaID = distributedArea.area_id
-    logger.debug(
-        f"performing powerTransformerEndXfmrImpedances query for distributed area: {distributedAreaID}"
-    )
-    powerTransformers = distributedArea.typed_catalog.get(cim.PowerTransformer, {})
+    distributedAreaID = distributedArea.container.mRID
+    logger.debug(f"performing powerTransformerEndXfmrImpedances query for distributed area: {distributedAreaID}")
+    powerTransformers = distributedArea.graph.get(cim.PowerTransformer, {})
     desiredInfo = {}
-    transformerMeshImpedances = distributedArea.typed_catalog.get(cim.TransformerMeshImpedance, {})
+    transformerMeshImpedances = distributedArea.graph.get(cim.TransformerMeshImpedance, {})
     for powerTransformer in powerTransformers.values():
         transformerEnds = []
         for transformerEnd in powerTransformer.PowerTransformerEnd:
@@ -580,12 +528,8 @@ def powerTransformerEndXfmrImpedances(
             if transformerMeshImpedance.FromTransformerEnd.mRID in transformerEnds:    # type: ignore
                 for toTransformerEnd in transformerMeshImpedance.ToTransformerEnd:    # type: ignore
                     if toTransformerEnd.mRID in transformerEnds:    # type: ignore
-                        desiredInfo["xfmr_name"] = {
-                            "value": powerTransformer.name
-                        }    # type: ignore
-                        desiredInfo["mesh_x_ohm"] = {
-                            "value": transformerMeshImpedance.x
-                        }    # type: ignore
+                        desiredInfo["xfmr_name"] = {"value": powerTransformer.name}    # type: ignore
+                        desiredInfo["mesh_x_ohm"] = {"value": transformerMeshImpedance.x}    # type: ignore
                         dictContainsNone = False
                         nullAttributes = []
                         for i, v in desiredInfo.items():
@@ -593,34 +537,29 @@ def powerTransformerEndXfmrImpedances(
                                 dictContainsNone = True
                                 nullAttributes.append(i)
                         if len(nullAttributes) > 0:
-                            logger.debug(
-                                f"powerTransformerEndXfmrImpedances():PowerTransformer:{powerTransformer.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                            )
+                            logger.debug("powerTransformerEndXfmrImpedances():PowerTransformer:"
+                                         f"{powerTransformer.name} contained the following Null attributes:\n"
+                                         f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                             nullAttributes.clear()
                         if len(desiredInfo) > 0 and not dictContainsNone:
                             rv.append(copy.deepcopy(desiredInfo))
                         desiredInfo.clear()
-    logger.debug(
-        f'powerTransformerEndXfmrImpedances returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'powerTransformerEndXfmrImpedances for {distributedAreaID} returns: '
+                 f'{json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
-def powerTransformerEndXfmrNames(
-        distributedArea) -> List[Dict]:
+def powerTransformerEndXfmrNames(distributedArea: DistributedArea) -> List[Dict]:
     rv = []
-    if isinstance(distributedArea, DistributedModel):
-        distributedAreaID = distributedArea.feeder.mRID
-    else:
-        distributedAreaID = distributedArea.area_id
-    logger.debug(
-        f"performing powerTransformerEndXfmrNames query for distributed area: {distributedAreaID}")
-    powerTransformers = distributedArea.typed_catalog.get(cim.PowerTransformer, {})
+    distributedAreaID = distributedArea.container.mRID
+    logger.debug(f"performing powerTransformerEndXfmrNames query for distributed area: {distributedAreaID}")
+    powerTransformers = distributedArea.graph.get(cim.PowerTransformer, {})
     desiredInfo = {}
     for powerTransformer in powerTransformers.values():
         for powerTransformerEnd in powerTransformer.PowerTransformerEnd:    # type: ignore
             desiredInfo["xfmr_name"] = {"value": powerTransformer.name}    # type: ignore
-            if isinstance(powerTransformerEnd.connectionKind, list):
-                desiredInfo["connection"] = {"value": powerTransformerEnd.connectionKind[0]}
+            if isinstance(powerTransformerEnd.connectionKind, cim.WindingConnection):
+                desiredInfo["connection"] = {"value": powerTransformerEnd.connectionKind.value}
             else:
                 desiredInfo["connection"] = {"value": None}
             desiredInfo["end_number"] = {"value": powerTransformerEnd.endNumber}
@@ -639,125 +578,181 @@ def powerTransformerEndXfmrNames(
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(
-                    f"powerTransformerEndXfmrNames():PowerTransformer:{powerTransformer.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                )
+                logger.debug(f"powerTransformerEndXfmrNames():PowerTransformer:{powerTransformer.name} contained the "
+                             f"following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-    logger.debug(f'powerTransformerEndXfmrNames returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'powerTransformerEndXfmrNames for {distributedAreaID} returns: '
+                 f'{json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
-def transformerTankXfmrRated(
-        distributedArea) -> List[Dict]:
+def transformerTankXfmrRated(distributedArea: DistributedArea) -> List[Dict]:
     rv = []
-    if isinstance(distributedArea, DistributedModel):
-        distributedAreaID = distributedArea.feeder.mRID
-    else:
-        distributedAreaID = distributedArea.area_id
-    logger.debug(
-        f"performing transformerTankXfmrRated query for distributed area: {distributedAreaID}")
-    transformerTanks = distributedArea.typed_catalog.get(cim.TransformerTank, {})
+    distributedAreaID = distributedArea.container.mRID
+    logger.debug(f"performing transformerTankXfmrRated query for distributed area: {distributedAreaID}")
+    transformerTanks = distributedArea.graph.get(cim.TransformerTank, {})
     desiredInfo = {}
     for transformerTank in transformerTanks.values():
         transformerTankInfo = transformerTank.TransformerTankInfo    # type: ignore
-        for transformerEndInfo in transformerTankInfo.TransformerEndInfos:
-            desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
-            desiredInfo["connection"] = {"value": transformerEndInfo.connectionKind[0]}
-            desiredInfo["enum"] = {"value": transformerEndInfo.endNumber}
-            desiredInfo["ratedS"] = {"value": transformerEndInfo.ratedS}
-            desiredInfo["ratedU"] = {"value": transformerEndInfo.ratedU}
-            desiredInfo["r_ohm"] = {"value": transformerEndInfo.r}
-            dictContainsNone = False
-            nullAttributes = []
-            for i, v in desiredInfo.items():
-                if v["value"] is None:
-                    dictContainsNone = True
-                    nullAttributes.append(i)
-            if len(nullAttributes) > 0:
-                logger.debug(
-                    f"transformerTankXfmrRated():TransformerTank:{transformerTank.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                )
-                nullAttributes.clear()
-            if len(desiredInfo) > 0 and not dictContainsNone:
-                rv.append(copy.deepcopy(desiredInfo))
-            desiredInfo.clear()
-    logger.debug(f'transformerTankXfmrRated returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+        if transformerTankInfo is not None:
+            for transformerEndInfo in transformerTankInfo.TransformerEndInfos:
+                desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
+                desiredInfo["connection"] = {"value": transformerEndInfo.connectionKind.value}
+                desiredInfo["enum"] = {"value": transformerEndInfo.endNumber}
+                desiredInfo["ratedS"] = {"value": transformerEndInfo.ratedS}
+                desiredInfo["ratedU"] = {"value": transformerEndInfo.ratedU}
+                desiredInfo["r_ohm"] = {"value": transformerEndInfo.r}
+                dictContainsNone = False
+                nullAttributes = []
+                for i, v in desiredInfo.items():
+                    if v["value"] is None:
+                        dictContainsNone = True
+                        nullAttributes.append(i)
+                if len(nullAttributes) > 0:
+                    logger.debug(f"transformerTankXfmrRated():TransformerTank:{transformerTank.name} contained the "
+                                 f"following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                    nullAttributes.clear()
+                if len(desiredInfo) > 0 and not dictContainsNone:
+                    rv.append(copy.deepcopy(desiredInfo))
+                desiredInfo.clear()
+        else:
+            for asset in transformerTank.Assets:
+                if isinstance(asset.AssetInfo, cim.TransformerTankInfo):
+                    for transformerEndInfo in asset.AssetInfo.TransformerEndInfos:
+                        desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
+                        desiredInfo["connection"] = {"value": transformerEndInfo.connectionKind.value}
+                        desiredInfo["enum"] = {"value": transformerEndInfo.endNumber}
+                        desiredInfo["ratedS"] = {"value": transformerEndInfo.ratedS}
+                        desiredInfo["ratedU"] = {"value": transformerEndInfo.ratedU}
+                        desiredInfo["r_ohm"] = {"value": transformerEndInfo.r}
+                        dictContainsNone = False
+                        nullAttributes = []
+                        for i, v in desiredInfo.items():
+                            if v["value"] is None:
+                                dictContainsNone = True
+                                nullAttributes.append(i)
+                        if len(nullAttributes) > 0:
+                            logger.debug(f"transformerTankXfmrRated():TransformerTank:{transformerTank.name} contained "
+                                         "the following Null attributes:\n"
+                                         f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                            nullAttributes.clear()
+                        if len(desiredInfo) > 0 and not dictContainsNone:
+                            rv.append(copy.deepcopy(desiredInfo))
+                        desiredInfo.clear()
+    logger.debug(f'transformerTankXfmrRated for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
-def transformerTankXfmrSct(
-        distributedArea) -> List[Dict]:
+def transformerTankXfmrSct(distributedArea: DistributedArea) -> List[Dict]:
     rv = []
-    if isinstance(distributedArea, DistributedModel):
-        distributedAreaID = distributedArea.feeder.mRID
-    else:
-        distributedAreaID = distributedArea.area_id
-    logger.debug(
-        f"performing transformerTankXfmrSct query for distributed area: {distributedAreaID}")
-    transformerTanks = distributedArea.typed_catalog.get(cim.TransformerTank, {})
+    distributedAreaID = distributedArea.container.mRID
+    logger.debug(f"performing transformerTankXfmrSct query for distributed area: {distributedAreaID}")
+    transformerTanks = distributedArea.graph.get(cim.TransformerTank, {})
     desiredInfo = {}
     for transformerTank in transformerTanks.values():
         transformerTankInfo = transformerTank.TransformerTankInfo    # type: ignore
-        for transformerEndInfo in transformerTankInfo.TransformerEndInfos:
-            for shortCircuitTest in transformerEndInfo.EnergisedEndShortCircuitTests:
-                for groundedEnd in shortCircuitTest.GroundedEnds:
-                    desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
-                    desiredInfo["enum"] = {"value": shortCircuitTest.EnergisedEnd.endNumber}
-                    desiredInfo["gnum"] = {"value": groundedEnd.endNumber}
-                    desiredInfo["leakage_z"] = {"value": shortCircuitTest.leakageImpedance}
-                    dictContainsNone = False
-                    nullAttributes = []
-                    for i, v in desiredInfo.items():
-                        if v["value"] is None:
-                            dictContainsNone = True
-                            nullAttributes.append(i)
-                    if len(nullAttributes) > 0:
-                        logger.debug(
-                            f"transformerTankXfmrSct():TransformerTank:{transformerTank.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                        )
-                        nullAttributes.clear()
-                    if len(desiredInfo) > 0 and not dictContainsNone:
-                        if desiredInfo not in rv:
-                            rv.append(copy.deepcopy(desiredInfo))
-                    desiredInfo.clear()
-            for shortCircuitTest in transformerEndInfo.GroundedEndShortCircuitTests:
-                for groundedEnd in shortCircuitTest.GroundedEnds:
-                    desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
-                    desiredInfo["enum"] = {"value": shortCircuitTest.EnergisedEnd.endNumber}
-                    desiredInfo["gnum"] = {"value": groundedEnd.endNumber}
-                    desiredInfo["leakage_z"] = {"value": shortCircuitTest.leakageImpedance}
-                    dictContainsNone = False
-                    nullAttributes = []
-                    for i, v in desiredInfo.items():
-                        if v["value"] is None:
-                            dictContainsNone = True
-                            nullAttributes.append(i)
-                    if len(nullAttributes) > 0:
-                        logger.debug(
-                            f"transformerTankXfmrSct():TransformerTank:{transformerTank.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                        )
-                        nullAttributes.clear()
-                    if len(desiredInfo) > 0 and not dictContainsNone:
-                        if desiredInfo not in rv:
-                            rv.append(copy.deepcopy(desiredInfo))
-                    desiredInfo.clear()
-    logger.debug(f'transformerTankXfmrSct returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+        if transformerTankInfo is not None:
+            for transformerEndInfo in transformerTankInfo.TransformerEndInfos:
+                for shortCircuitTest in transformerEndInfo.EnergisedEndShortCircuitTests:
+                    for groundedEnd in shortCircuitTest.GroundedEnds:
+                        desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
+                        desiredInfo["enum"] = {"value": shortCircuitTest.EnergisedEnd.endNumber}
+                        desiredInfo["gnum"] = {"value": groundedEnd.endNumber}
+                        desiredInfo["leakage_z"] = {"value": shortCircuitTest.leakageImpedance}
+                        dictContainsNone = False
+                        nullAttributes = []
+                        for i, v in desiredInfo.items():
+                            if v["value"] is None:
+                                dictContainsNone = True
+                                nullAttributes.append(i)
+                        if len(nullAttributes) > 0:
+                            logger.debug(f"transformerTankXfmrSct():TransformerTank:{transformerTank.name} contained "
+                                         "the following Null attributes:\n"
+                                         f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                            nullAttributes.clear()
+                        if len(desiredInfo) > 0 and not dictContainsNone:
+                            if desiredInfo not in rv:
+                                rv.append(copy.deepcopy(desiredInfo))
+                        desiredInfo.clear()
+                for shortCircuitTest in transformerEndInfo.GroundedEndShortCircuitTests:
+                    for groundedEnd in shortCircuitTest.GroundedEnds:
+                        desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
+                        desiredInfo["enum"] = {"value": shortCircuitTest.EnergisedEnd.endNumber}
+                        desiredInfo["gnum"] = {"value": groundedEnd.endNumber}
+                        desiredInfo["leakage_z"] = {"value": shortCircuitTest.leakageImpedance}
+                        dictContainsNone = False
+                        nullAttributes = []
+                        for i, v in desiredInfo.items():
+                            if v["value"] is None:
+                                dictContainsNone = True
+                                nullAttributes.append(i)
+                        if len(nullAttributes) > 0:
+                            logger.debug(f"transformerTankXfmrSct():TransformerTank:{transformerTank.name} contained "
+                                         "the following Null attributes:\n"
+                                         f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                            nullAttributes.clear()
+                        if len(desiredInfo) > 0 and not dictContainsNone:
+                            if desiredInfo not in rv:
+                                rv.append(copy.deepcopy(desiredInfo))
+                        desiredInfo.clear()
+        else:
+            for asset in transformerTank.Assets:
+                if isinstance(asset.AssetInfo, cim.TransformerTankInfo):
+                    for transformerEndInfo in asset.AssetInfo.TransformerEndInfos:
+                        for shortCircuitTest in transformerEndInfo.EnergisedEndShortCircuitTests:
+                            for groundedEnd in shortCircuitTest.GroundedEnds:
+                                desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
+                                desiredInfo["enum"] = {"value": shortCircuitTest.EnergisedEnd.endNumber}
+                                desiredInfo["gnum"] = {"value": groundedEnd.endNumber}
+                                desiredInfo["leakage_z"] = {"value": shortCircuitTest.leakageImpedance}
+                                dictContainsNone = False
+                                nullAttributes = []
+                                for i, v in desiredInfo.items():
+                                    if v["value"] is None:
+                                        dictContainsNone = True
+                                        nullAttributes.append(i)
+                                if len(nullAttributes) > 0:
+                                    logger.debug(f"transformerTankXfmrSct():TransformerTank:{transformerTank.name} "
+                                                 "contained the following Null attributes:\n"
+                                                 f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                                    nullAttributes.clear()
+                                if len(desiredInfo) > 0 and not dictContainsNone:
+                                    if desiredInfo not in rv:
+                                        rv.append(copy.deepcopy(desiredInfo))
+                                desiredInfo.clear()
+                        for shortCircuitTest in transformerEndInfo.GroundedEndShortCircuitTests:
+                            for groundedEnd in shortCircuitTest.GroundedEnds:
+                                desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
+                                desiredInfo["enum"] = {"value": shortCircuitTest.EnergisedEnd.endNumber}
+                                desiredInfo["gnum"] = {"value": groundedEnd.endNumber}
+                                desiredInfo["leakage_z"] = {"value": shortCircuitTest.leakageImpedance}
+                                dictContainsNone = False
+                                nullAttributes = []
+                                for i, v in desiredInfo.items():
+                                    if v["value"] is None:
+                                        dictContainsNone = True
+                                        nullAttributes.append(i)
+                                if len(nullAttributes) > 0:
+                                    logger.debug(f"transformerTankXfmrSct():TransformerTank:{transformerTank.name} "
+                                                 "contained the following Null attributes:\n"
+                                                 f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                                    nullAttributes.clear()
+                                if len(desiredInfo) > 0 and not dictContainsNone:
+                                    if desiredInfo not in rv:
+                                        rv.append(copy.deepcopy(desiredInfo))
+                                desiredInfo.clear()
+    logger.debug(f'transformerTankXfmrSct for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
-def transformerTankXfmrNames(
-        distributedArea) -> List[Dict]:
+def transformerTankXfmrNames(distributedArea: DistributedArea) -> List[Dict]:
     rv = []
-    if isinstance(distributedArea, DistributedModel):
-        distributedAreaID = distributedArea.feeder.mRID
-    else:
-        distributedAreaID = distributedArea.area_id
-    logger.debug(
-        f"performing transformerTankXfmrNames query for distributed area: {distributedAreaID}")
-    transformerTanks = distributedArea.typed_catalog.get(cim.TransformerTank, {})
+    distributedAreaID = distributedArea.container.mRID
+    logger.debug(f"performing transformerTankXfmrNames query for distributed area: {distributedAreaID}")
+    transformerTanks = distributedArea.graph.get(cim.TransformerTank, {})
     desiredInfo = {}
     for transformerTank in transformerTanks.values():
         for transformerTankEnd in transformerTank.TransformerTankEnds:    # type: ignore
@@ -765,7 +760,7 @@ def transformerTankXfmrNames(
             desiredInfo["enum"] = {"value": transformerTankEnd.endNumber}
             desiredInfo["bus"] = {"value": transformerTankEnd.Terminal.ConnectivityNode.name}
             desiredInfo["baseV"] = {"value": transformerTankEnd.BaseVoltage.nominalVoltage}
-            desiredInfo["phase"] = {"value": transformerTankEnd.phases[0]}
+            desiredInfo["phase"] = {"value": transformerTankEnd.phases.value}
             dictContainsNone = False
             nullAttributes = []
             for i, v in desiredInfo.items():
@@ -773,35 +768,28 @@ def transformerTankXfmrNames(
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(
-                    f"transformerTankXfmrNames():TransformerTank:{transformerTank.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                )
+                logger.debug(f"transformerTankXfmrNames():TransformerTank:{transformerTank.name} contained the "
+                             f"following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-    logger.debug(f'transformerTankXfmrNames returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'transformerTankXfmrNames for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
-def switchingEquipmentSwitchNames(
-        distributedArea) -> List[Dict]:
+def switchingEquipmentSwitchNames(distributedArea: DistributedArea) -> List[Dict]:
     rv = []
-    if isinstance(distributedArea, DistributedModel):
-        distributedAreaID = distributedArea.feeder.mRID
-    else:
-        distributedAreaID = distributedArea.area_id
-    logger.debug(
-        f"performing switchingEquipmentSwitchNames query for distributed area: {distributedAreaID}"
-    )
-    loadBreakSwitches = distributedArea.typed_catalog.get(cim.LoadBreakSwitch, {})
-    reclosers = distributedArea.typed_catalog.get(cim.Recloser, {})
-    breakers = distributedArea.typed_catalog.get(cim.Breaker, {})
-    fuses = distributedArea.typed_catalog.get(cim.Fuse, {})
-    sectionalisers = distributedArea.typed_catalog.get(cim.Sectionaliser, {})
-    jumpers = distributedArea.typed_catalog.get(cim.Jumper, {})
-    disconnectors = distributedArea.typed_catalog.get(cim.Disconnector, {})
-    groundDisconnectors = distributedArea.typed_catalog.get(cim.GroundDisconnector, {})
+    distributedAreaID = distributedArea.container.mRID
+    logger.debug(f"performing switchingEquipmentSwitchNames query for distributed area: {distributedAreaID}")
+    loadBreakSwitches = distributedArea.graph.get(cim.LoadBreakSwitch, {})
+    reclosers = distributedArea.graph.get(cim.Recloser, {})
+    breakers = distributedArea.graph.get(cim.Breaker, {})
+    fuses = distributedArea.graph.get(cim.Fuse, {})
+    sectionalisers = distributedArea.graph.get(cim.Sectionaliser, {})
+    jumpers = distributedArea.graph.get(cim.Jumper, {})
+    disconnectors = distributedArea.graph.get(cim.Disconnector, {})
+    groundDisconnectors = distributedArea.graph.get(cim.GroundDisconnector, {})
     switchEquipment = {
         **loadBreakSwitches,
         **reclosers,
@@ -824,7 +812,7 @@ def switchingEquipmentSwitchNames(
                     if int(terminal.sequenceNumber) == 2:
                         desiredInfo["bus2"] = {"value": terminal.ConnectivityNode.name}
                 if switchPhase.phaseSide1 is not None:
-                    desiredInfo["phases_side1"] = {"value": switchPhase.phaseSide1[0]}
+                    desiredInfo["phases_side1"] = {"value": switchPhase.phaseSide1.value}
                 else:
                     desiredInfo["phases_side1"] = {"value": None}
                 dictContainsNone = False
@@ -834,9 +822,8 @@ def switchingEquipmentSwitchNames(
                         dictContainsNone = True
                         nullAttributes.append(i)
                 if len(nullAttributes) > 0:
-                    logger.debug(
-                        f"switchingEquipmentSwitchNames():Switch:{switchEq.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                    )
+                    logger.debug(f"switchingEquipmentSwitchNames():Switch:{switchEq.name} contained the following Null "
+                                 f"attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                     nullAttributes.clear()
                 if len(desiredInfo) > 0 and not dictContainsNone:
                     rv.append(copy.deepcopy(desiredInfo))
@@ -857,46 +844,35 @@ def switchingEquipmentSwitchNames(
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(
-                    f"switchingEquipmentSwitchNames():Switch:{switchEq.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                )
+                logger.debug(f"switchingEquipmentSwitchNames():Switch:{switchEq.name} contained the following Null "
+                             f"attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-
-    logger.debug(
-        f'switchingEquipmentSwitchNames returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'switchingEquipmentSwitchNames for {distributedAreaID} returns: '
+                 f'{json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
-def shuntElementCapNames(
-        distributedArea) -> List[Dict]:
+def shuntElementCapNames(distributedArea: DistributedArea) -> List[Dict]:
     rv = []
-    if isinstance(distributedArea, DistributedModel):
-        distributedAreaID = distributedArea.feeder.mRID
-    else:
-        distributedAreaID = distributedArea.area_id
-    logger.debug(
-        f"performing shuntElementCapNames query for distributed area: {distributedAreaID}")
-    linearShuntCompensators = distributedArea.typed_catalog.get(cim.LinearShuntCompensator, {})
+    distributedAreaID = distributedArea.container.mRID
+    logger.debug(f"performing shuntElementCapNames query for distributed area: {distributedAreaID}")
+    linearShuntCompensators = distributedArea.graph.get(cim.LinearShuntCompensator, {})
     desiredInfo = {}
     for linearShuntCompensator in linearShuntCompensators.values():
         if len(linearShuntCompensator.ShuntCompensatorPhase) > 0:
             for shuntCompensatorPhase in linearShuntCompensator.ShuntCompensatorPhase:    # type: ignore
                 desiredInfo["cap_name"] = {"value": linearShuntCompensator.name}    # type: ignore
-                desiredInfo["b_per_section"] = {
-                    "value": linearShuntCompensator.bPerSection
-                }    # type: ignore
+                desiredInfo["b_per_section"] = {"value": linearShuntCompensator.bPerSection}    # type: ignore
                 for terminal in linearShuntCompensator.Terminals:
                     if int(terminal.sequenceNumber) == 1:
-                        desiredInfo["bus"] = {
-                            "value": terminal.ConnectivityNode.name
-                        }    # type: ignore
+                        desiredInfo["bus"] = {"value": terminal.ConnectivityNode.name}    # type: ignore
                     else:
                         desiredInfo["bus"] = {"value": None}
                 if shuntCompensatorPhase.phase is not None:
-                    desiredInfo["phase"] = {"value": shuntCompensatorPhase.phase[0]}
+                    desiredInfo["phase"] = {"value": shuntCompensatorPhase.phase.value}
                 dictContainsNone = False
                 nullAttributes = []
                 for i, v in desiredInfo.items():
@@ -904,23 +880,18 @@ def shuntElementCapNames(
                         dictContainsNone = True
                         nullAttributes.append(i)
                 if len(nullAttributes) > 0:
-                    logger.debug(
-                        f"shuntElementCapNames():Capacitor:{linearShuntCompensator.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                    )
+                    logger.debug(f"shuntElementCapNames():Capacitor:{linearShuntCompensator.name} contained the "
+                                 f"following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                     nullAttributes.clear()
                 if len(desiredInfo) > 0 and not dictContainsNone:
                     rv.append(copy.deepcopy(desiredInfo))
                 desiredInfo.clear()
         else:
             desiredInfo["cap_name"] = {"value": linearShuntCompensator.name}    # type: ignore
-            desiredInfo["b_per_section"] = {
-                "value": linearShuntCompensator.bPerSection
-            }    # type: ignore
+            desiredInfo["b_per_section"] = {"value": linearShuntCompensator.bPerSection}    # type: ignore
             for terminal in linearShuntCompensator.Terminals:
                 if int(terminal.sequenceNumber) == 1:
-                    desiredInfo["bus"] = {
-                        "value": terminal.ConnectivityNode.name
-                    }    # type: ignore
+                    desiredInfo["bus"] = {"value": terminal.ConnectivityNode.name}    # type: ignore
                 else:
                     desiredInfo["bus"] = {"value": None}
             dictContainsNone = False
@@ -930,65 +901,77 @@ def shuntElementCapNames(
                     dictContainsNone = True
                     nullAttributes.append(i)
             if len(nullAttributes) > 0:
-                logger.debug(
-                    f"shuntElementCapNames():Capacitor:{linearShuntCompensator.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                )
+                logger.debug(f"shuntElementCapNames():Capacitor:{linearShuntCompensator.name} contained the following "
+                             f"Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                 nullAttributes.clear()
             if len(desiredInfo) > 0 and not dictContainsNone:
                 rv.append(copy.deepcopy(desiredInfo))
             desiredInfo.clear()
-    logger.debug(f'shuntElementCapNames returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'shuntElementCapNames for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
-def transformerTankXfmrNlt(
-        distributedArea) -> List[Dict]:
+def transformerTankXfmrNlt(distributedArea: DistributedArea) -> List[Dict]:
     rv = []
-    if isinstance(distributedArea, DistributedModel):
-        distributedAreaID = distributedArea.feeder.mRID
-    else:
-        distributedAreaID = distributedArea.area_id
-    logger.debug(
-        f"performing transformerTankXfmrNlt query for distributed area: {distributedAreaID}")
-    powerTransformers = distributedArea.typed_catalog.get(cim.PowerTransformer, {})
-    transformerTanks = distributedArea.typed_catalog.get(cim.TransformerTank, {})
+    distributedAreaID = distributedArea.container.mRID
+    logger.debug(f"performing transformerTankXfmrNlt query for distributed area: {distributedAreaID}")
+    powerTransformers = distributedArea.graph.get(cim.PowerTransformer, {})
+    transformerTanks = distributedArea.graph.get(cim.TransformerTank, {})
     desiredInfo = {}
     for transformerTank in transformerTanks.values():
         transformerTankInfo = transformerTank.TransformerTankInfo    # type: ignore
-        for transformerEndInfo in transformerTankInfo.TransformerEndInfos:
-            for noLoadTest in transformerEndInfo.EnergisedEndNoLoadTests:
-                desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
-                desiredInfo["noloadloss_kW"] = {"value": noLoadTest.loss}
-                desiredInfo["i_exciting"] = {"value": noLoadTest.excitingCurrent}
-                dictContainsNone = False
-                nullAttributes = []
-                for i, v in desiredInfo.items():
-                    if v["value"] is None:
-                        dictContainsNone = True
-                        nullAttributes.append(i)
-                if len(nullAttributes) > 0:
-                    logger.debug(
-                        f"transformerTankXfmrNlt():TransformerTank:{transformerTank.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                    )
-                    nullAttributes.clear()
-                if len(desiredInfo) > 0 and not dictContainsNone:
-                    rv.append(copy.deepcopy(desiredInfo))
-                desiredInfo.clear()
-    logger.debug(f'transformerTankXfmrNlt returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+        if transformerTankInfo is not None:
+            for transformerEndInfo in transformerTankInfo.TransformerEndInfos:
+                for noLoadTest in transformerEndInfo.EnergisedEndNoLoadTests:
+                    desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
+                    desiredInfo["noloadloss_kW"] = {"value": noLoadTest.loss}
+                    desiredInfo["i_exciting"] = {"value": noLoadTest.excitingCurrent}
+                    dictContainsNone = False
+                    nullAttributes = []
+                    for i, v in desiredInfo.items():
+                        if v["value"] is None:
+                            dictContainsNone = True
+                            nullAttributes.append(i)
+                    if len(nullAttributes) > 0:
+                        logger.debug(f"transformerTankXfmrNlt():TransformerTank:{transformerTank.name} contained the "
+                                     "following Null attributes:\n"
+                                     f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                        nullAttributes.clear()
+                    if len(desiredInfo) > 0 and not dictContainsNone:
+                        rv.append(copy.deepcopy(desiredInfo))
+                    desiredInfo.clear()
+        else:
+            for asset in transformerTank.Assets:
+                if isinstance(asset.AssetInfo, cim.TransformerTankInfo):
+                    for transformerEndInfo in asset.AssetInfo.TransformerEndInfos:
+                        for noLoadTest in transformerEndInfo.EnergisedEndNoLoadTests:
+                            desiredInfo["xfmr_name"] = {"value": transformerTank.name}    # type: ignore
+                            desiredInfo["noloadloss_kW"] = {"value": noLoadTest.loss}
+                            desiredInfo["i_exciting"] = {"value": noLoadTest.excitingCurrent}
+                            dictContainsNone = False
+                            nullAttributes = []
+                            for i, v in desiredInfo.items():
+                                if v["value"] is None:
+                                    dictContainsNone = True
+                                    nullAttributes.append(i)
+                            if len(nullAttributes) > 0:
+                                logger.debug(f"transformerTankXfmrNlt():TransformerTank:{transformerTank.name} "
+                                             "contained the following Null attributes:\n"
+                                             f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
+                                nullAttributes.clear()
+                            if len(desiredInfo) > 0 and not dictContainsNone:
+                                rv.append(copy.deepcopy(desiredInfo))
+                            desiredInfo.clear()
+
+    logger.debug(f'transformerTankXfmrNlt for {distributedAreaID} returns: {json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
-def powerTransformerEndXfmrAdmittances(
-        distributedArea) -> List[Dict]:
+def powerTransformerEndXfmrAdmittances(distributedArea: DistributedArea) -> List[Dict]:
     rv = []
-    if isinstance(distributedArea, DistributedModel):
-        distributedAreaID = distributedArea.feeder.mRID
-    else:
-        distributedAreaID = distributedArea.area_id
-    logger.debug(
-        f"performing powerTransformerEndXfmrAdmittances query for distributed area: {distributedAreaID}"
-    )
-    powerTransformers = distributedArea.typed_catalog.get(cim.PowerTransformer, {})
+    distributedAreaID = distributedArea.container.mRID
+    logger.debug(f"performing powerTransformerEndXfmrAdmittances query for distributed area: {distributedAreaID}")
+    powerTransformers = distributedArea.graph.get(cim.PowerTransformer, {})
     desiredInfo = {}
     for powerTransformer in powerTransformers.values():
         for powerTransformerEnd in powerTransformer.PowerTransformerEnd:    # type: ignore
@@ -1003,15 +986,15 @@ def powerTransformerEndXfmrAdmittances(
                         dictContainsNone = True
                         nullAttributes.append(i)
                 if len(nullAttributes) > 0:
-                    logger.debug(
-                        f"powerTransformerEndXfmrAdmittances():PowerTransformer:{powerTransformer.name} contained the following Null attributes:\n{json.dumps(nullAttributes, indent=4, sort_keys=True)}"
-                    )
+                    logger.debug(f"powerTransformerEndXfmrAdmittances():PowerTransformer:{powerTransformer.name} "
+                                 "contained the following Null attributes:\n"
+                                 f"{json.dumps(nullAttributes, indent=4, sort_keys=True)}")
                     nullAttributes.clear()
                 if len(desiredInfo) > 0 and not dictContainsNone:
                     rv.append(copy.deepcopy(desiredInfo))
                 desiredInfo.clear()
-    logger.debug(
-        f'powerTransformerEndXfmrAdmittances returns: {json.dumps(rv,indent=4,sort_keys=True)}')
+    logger.debug(f'powerTransformerEndXfmrAdmittances for {distributedAreaID} returns: '
+                 f'{json.dumps(rv,indent=4,sort_keys=True)}')
     return rv
 
 
@@ -1103,10 +1086,11 @@ def fillYbusPerLengthPhaseImpedanceLines(distributedArea, Ybus: Dict):
     bindings = perLengthPhaseImpedanceLineNames(distributedArea)
     if len(bindings) == 0:
         return
+    bindingsSorted = sorted(bindings, key=lambda d: (d["line_name"]["value"], d["phase"]["value"]))
     # map line_name query phase values to nodelist indexes
     ybusPhaseIdx = {'A': '.1', 'B': '.2', 'C': '.3', 's1': '.1', 's2': '.2'}
     last_name = ''
-    for obj in bindings:
+    for obj in bindingsSorted:
         line_name = obj['line_name']['value']
         bus1 = obj['bus1']['value'].upper()
         bus2 = obj['bus2']['value'].upper()
@@ -1121,15 +1105,14 @@ def fillYbusPerLengthPhaseImpedanceLines(distributedArea, Ybus: Dict):
             # invert the matrix
             invZabc = np.linalg.inv(lenZabc)
             # test if the inverse * original = identity
-            #identityTest = np.dot(lenZabc, invZabc)
-            #logger.debug('identity test for ' + line_name + ': ' + str(identityTest))
+            # identityTest = np.dot(lenZabc, invZabc)
+            # logger.debug('identity test for ' + line_name + ': ' + str(identityTest))
             # negate the matrix and assign it to Ycomp
             Ycomp = invZabc * -1
         # we now have the negated inverted matrix for comparison
         line_idx += 1
         if Ycomp.size == 1:
-            fillYbusNoSwapLines(bus1 + ybusPhaseIdx[phase], bus2 + ybusPhaseIdx[phase],
-                                Ycomp[0, 0], Ybus)
+            fillYbusNoSwapLines(bus1 + ybusPhaseIdx[phase], bus2 + ybusPhaseIdx[phase], Ycomp[0, 0], Ybus)
         elif Ycomp.size == 4:
             if line_idx == 1:
                 pair_i0b1 = bus1 + ybusPhaseIdx[phase]
@@ -1158,7 +1141,7 @@ def fillYbusPerLengthPhaseImpedanceLines(distributedArea, Ybus: Dict):
                 fillYbusNoSwapLines(pair_i2b1, pair_i2b2, Ycomp[2, 2], Ybus)
 
 
-def fillYbusPerLengthSequenceImpedanceLines(distributedArea, Ybus: Dict):
+def fillYbusPerLengthSequenceImpedanceLines(distributedArea: DistributedArea, Ybus: Dict):
     bindings = perLengthSequenceImpedanceLineConfigs(distributedArea)
     if len(bindings) == 0:
         return
@@ -1186,8 +1169,8 @@ def fillYbusPerLengthSequenceImpedanceLines(distributedArea, Ybus: Dict):
         # invert the matrix
         invZabc = np.linalg.inv(lenZabc)
         # test if the inverse * original = identity
-        #identityTest = np.dot(lenZabc, invZabc)
-        #logger.debug('identity test for ' + line_name + ': ' + str(identityTest))
+        # identityTest = np.dot(lenZabc, invZabc)
+        # logger.debug('identity test for ' + line_name + ': ' + str(identityTest))
         # negate the matrix and assign it to Ycomp
         Ycomp = invZabc * -1
         fillYbusNoSwapLines(bus1 + '.1', bus2 + '.1', Ycomp[0, 0], Ybus)
@@ -1198,13 +1181,12 @@ def fillYbusPerLengthSequenceImpedanceLines(distributedArea, Ybus: Dict):
         fillYbusNoSwapLines(bus1 + '.3', bus2 + '.3', Ycomp[2, 2], Ybus)
 
 
-def fillYbusACLineSegmentLines(distributedArea,
-                               Ybus: Dict):
+def fillYbusACLineSegmentLines(distributedArea: DistributedArea, Ybus: Dict):
     bindings = acLineSegmentLineNames(distributedArea)
     if len(bindings) == 0:
         return
     for obj in bindings:
-        #logger.debug(obj.keys())
+        # logger.debug(obj.keys())
         line_name = obj['line_name']['value']
         bus1 = obj['bus1']['value'].upper()
         bus2 = obj['bus2']['value'].upper()
@@ -1218,12 +1200,12 @@ def fillYbusACLineSegmentLines(distributedArea,
         Zabc = np.array([(Zs, Zm, Zm), (Zm, Zs, Zm), (Zm, Zm, Zs)], dtype=complex)
         # multiply by scalar length
         lenZabc = Zabc * length
-        #lenZabc = Zabc * length * 3.3 # Kludge to get arount units issue (ft vs. m)
+        # lenZabc = Zabc * length * 3.3 # Kludge to get arount units issue (ft vs. m)
         # invert the matrix
         invZabc = np.linalg.inv(lenZabc)
         # test if the inverse * original = identity
-        #identityTest = np.dot(lenZabc, invZabc)
-        #logger.debug('identity test for ' + line_name + ': ' + str(identityTest))
+        # identityTest = np.dot(lenZabc, invZabc)
+        # logger.debug('identity test for ' + line_name + ': ' + str(identityTest))
         # negate the matrix and assign it to Ycomp
         Ycomp = invZabc * -1
         fillYbusNoSwapLines(bus1 + '.1', bus2 + '.1', Ycomp[0, 0], Ybus)
@@ -1234,14 +1216,14 @@ def fillYbusACLineSegmentLines(distributedArea,
         fillYbusNoSwapLines(bus1 + '.3', bus2 + '.3', Ycomp[2, 2], Ybus)
 
 
-def CN_dist_R(dim, i, j, wire_spacing_info, wire_cn_ts, XCoord, YCoord, CN_strand_count,
-              CN_strand_rdc, CN_strand_gmr, CN_strand_radius, CN_diameter_jacket):
+def CN_dist_R(dim, i, j, wire_spacing_info, wire_cn_ts, XCoord, YCoord, CN_strand_count, CN_strand_rdc, CN_strand_gmr,
+              CN_strand_radius, CN_diameter_jacket):
     dist = (CN_diameter_jacket[wire_cn_ts] - CN_strand_radius[wire_cn_ts] * 2.0) / 2.0
     return dist
 
 
-def CN_dist_D(dim, i, j, wire_spacing_info, wire_cn_ts, XCoord, YCoord, CN_strand_count,
-              CN_strand_rdc, CN_strand_gmr, CN_strand_radius, CN_diameter_jacket):
+def CN_dist_D(dim, i, j, wire_spacing_info, wire_cn_ts, XCoord, YCoord, CN_strand_count, CN_strand_rdc, CN_strand_gmr,
+              CN_strand_radius, CN_diameter_jacket):
     ii, jj = CN_dist_ij[dim][i][j]
     dist = math.sqrt(
         math.pow(XCoord[wire_spacing_info][ii] - XCoord[wire_spacing_info][jj], 2) +
@@ -1249,8 +1231,8 @@ def CN_dist_D(dim, i, j, wire_spacing_info, wire_cn_ts, XCoord, YCoord, CN_stran
     return dist
 
 
-def CN_dist_DR(dim, i, j, wire_spacing_info, wire_cn_ts, XCoord, YCoord, CN_strand_count,
-               CN_strand_rdc, CN_strand_gmr, CN_strand_radius, CN_diameter_jacket):
+def CN_dist_DR(dim, i, j, wire_spacing_info, wire_cn_ts, XCoord, YCoord, CN_strand_count, CN_strand_rdc, CN_strand_gmr,
+               CN_strand_radius, CN_diameter_jacket):
     ii, jj = CN_dist_ij[dim][i][j]
     d = math.sqrt(
         math.pow(XCoord[wire_spacing_info][ii] - XCoord[wire_spacing_info][jj], 2) +
@@ -1341,9 +1323,8 @@ CN_dist_func[3][6][5] = CN_dist_D
 CN_dist_ij[3][6][5] = (3, 2)
 
 
-def diagZprim(wireinfo: str, wire_cn_ts, neutralFlag, R25, GMR, CN_strand_count, CN_strand_rdc,
-              CN_strand_gmr, CN_strand_radius, CN_diameter_jacket, TS_tape_thickness,
-              TS_diameter_screen):
+def diagZprim(wireinfo: str, wire_cn_ts, neutralFlag, R25, GMR, CN_strand_count, CN_strand_rdc, CN_strand_gmr,
+              CN_strand_radius, CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen):
     if wireinfo == 'ConcentricNeutralCableInfo' and neutralFlag:
         R = (CN_diameter_jacket[wire_cn_ts] - CN_strand_radius[wire_cn_ts] * 2.0) / 2.0
         k = CN_strand_count[wire_cn_ts]
@@ -1362,18 +1343,17 @@ def diagZprim(wireinfo: str, wire_cn_ts, neutralFlag, R25, GMR, CN_strand_count,
     return Zprim
 
 
-def offDiagZprim(i, j, wireinfo, wire_spacing_info, wire_cn_ts, XCoord, YCoord, R25, GMR,
-                 CN_strand_count, CN_strand_rdc, CN_strand_gmr, CN_strand_radius,
-                 CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen):
+def offDiagZprim(i, j, wireinfo, wire_spacing_info, wire_cn_ts, XCoord, YCoord, R25, GMR, CN_strand_count,
+                 CN_strand_rdc, CN_strand_gmr, CN_strand_radius, CN_diameter_jacket, TS_tape_thickness,
+                 TS_diameter_screen):
     if wireinfo == 'OverheadWireInfo':
         dist = math.sqrt(
             math.pow(XCoord[wire_spacing_info][i] - XCoord[wire_spacing_info][j], 2) +
             math.pow(YCoord[wire_spacing_info][i] - YCoord[wire_spacing_info][j], 2))
     elif wireinfo == 'ConcentricNeutralCableInfo':
         dim = len(XCoord[wire_spacing_info])    # 1=2x2, 2=4x4, 3=6x6
-        dist = CN_dist_func[dim][i][j](dim, i, j, wire_spacing_info, wire_cn_ts, XCoord, YCoord,
-                                       CN_strand_count, CN_strand_rdc, CN_strand_gmr,
-                                       CN_strand_radius, CN_diameter_jacket)
+        dist = CN_dist_func[dim][i][j](dim, i, j, wire_spacing_info, wire_cn_ts, XCoord, YCoord, CN_strand_count,
+                                       CN_strand_rdc, CN_strand_gmr, CN_strand_radius, CN_diameter_jacket)
     elif wireinfo == 'TapeShieldCableInfo':
         # this should only be hit for i==2
         T = TS_tape_thickness[wire_cn_ts]
@@ -1383,7 +1363,7 @@ def offDiagZprim(i, j, wireinfo, wire_spacing_info, wire_cn_ts, XCoord, YCoord, 
     return Zprim
 
 
-def fillYbusWireInfoAndWireSpacingInfoLines(distributedArea, Ybus: Dict):
+def fillYbusWireInfoAndWireSpacingInfoLines(distributedArea: DistributedArea, Ybus: Dict):
     # WireSpacingInfo query
     bindings = wireInfoSpacing(distributedArea)
     XCoord = {}
@@ -1436,6 +1416,7 @@ def fillYbusWireInfoAndWireSpacingInfoLines(distributedArea, Ybus: Dict):
     bindings = wireInfoLineNames(distributedArea)
     if len(bindings) == 0:
         return
+    bindingsSorted = sorted(bindings, key=lambda d: (d["line_name"]["value"], d["phase"]["value"]))
     # map line_name query phase values to nodelist indexes
     ybusPhaseIdx = {'A': '.1', 'B': '.2', 'C': '.3', 'N': '.4', 's1': '.1', 's2': '.2'}
     # map between 0-base numpy array indices and 1-based formulas so everything lines up
@@ -1449,7 +1430,7 @@ def fillYbusWireInfoAndWireSpacingInfoLines(distributedArea, Ybus: Dict):
     tape_skip = False
     phaseIdx = 0
     CN_done = False
-    for obj in bindings:
+    for obj in bindingsSorted:
         line_name = obj['line_name']['value']
         bus1 = obj['bus1']['value'].upper()
         bus2 = obj['bus2']['value'].upper()
@@ -1493,261 +1474,186 @@ def fillYbusWireInfoAndWireSpacingInfoLines(distributedArea, Ybus: Dict):
                     tape_skip = True
                     continue
             # row 1
-            Zprim[i1, j1] = diagZprim(wireinfo, wire_cn_ts, False, R25, GMR, CN_strand_count,
-                                      CN_strand_rdc, CN_strand_gmr, CN_strand_radius,
-                                      CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
+            Zprim[i1,
+                  j1] = diagZprim(wireinfo, wire_cn_ts, False, R25, GMR, CN_strand_count, CN_strand_rdc, CN_strand_gmr,
+                                  CN_strand_radius, CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
             if wireinfo == 'ConcentricNeutralCableInfo' and dim == 1:
                 CN_done = True
                 # row 2
-                Zprim[i2,
-                      j1] = Zprim[i1,
-                                  j2] = offDiagZprim(2, 1, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-                Zprim[i2,
-                      j2] = diagZprim(wireinfo, wire_cn_ts, True, R25, GMR, CN_strand_count,
-                                      CN_strand_rdc, CN_strand_gmr, CN_strand_radius,
-                                      CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
+                Zprim[i2, j1] = Zprim[i1, j2] = offDiagZprim(2, 1, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
+                Zprim[i2, j2] = diagZprim(wireinfo, wire_cn_ts, True, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                          CN_strand_gmr, CN_strand_radius, CN_diameter_jacket, TS_tape_thickness,
+                                          TS_diameter_screen)
             elif wireinfo == 'TapeShieldCableInfo':
                 # row 2
-                Zprim[i2,
-                      j1] = Zprim[i1,
-                                  j2] = offDiagZprim(2, 1, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
+                Zprim[i2, j1] = Zprim[i1, j2] = offDiagZprim(2, 1, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
                 # neutralFlag is passed as True as a flag indicating to use the 2nd row shield calculation
-                Zprim[i2,
-                      j2] = diagZprim(wireinfo, wire_cn_ts, True, R25, GMR, CN_strand_count,
-                                      CN_strand_rdc, CN_strand_gmr, CN_strand_radius,
-                                      CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
+                Zprim[i2, j2] = diagZprim(wireinfo, wire_cn_ts, True, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                          CN_strand_gmr, CN_strand_radius, CN_diameter_jacket, TS_tape_thickness,
+                                          TS_diameter_screen)
         elif phaseIdx == 1:
             pair_i1b1 = bus1 + ybusPhaseIdx[phase]
             pair_i1b2 = bus2 + ybusPhaseIdx[phase]
             # row 2
             if line_name != tape_line:
-                Zprim[i2,
-                      j1] = Zprim[i1,
-                                  j2] = offDiagZprim(2, 1, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-                Zprim[i2,
-                      j2] = diagZprim(wireinfo, wire_cn_ts, False, R25, GMR, CN_strand_count,
-                                      CN_strand_rdc, CN_strand_gmr, CN_strand_radius,
-                                      CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
+                Zprim[i2, j1] = Zprim[i1, j2] = offDiagZprim(2, 1, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
+                Zprim[i2, j2] = diagZprim(wireinfo, wire_cn_ts, False, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                          CN_strand_gmr, CN_strand_radius, CN_diameter_jacket, TS_tape_thickness,
+                                          TS_diameter_screen)
             if wireinfo == 'ConcentricNeutralCableInfo' and dim == 2:
                 CN_done = True
                 # row 3
-                Zprim[i3,
-                      j1] = Zprim[i1,
-                                  j3] = offDiagZprim(3, 1, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-                Zprim[i3,
-                      j2] = Zprim[i2,
-                                  j3] = offDiagZprim(3, 2, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-                Zprim[i3,
-                      j3] = diagZprim(wireinfo, wire_cn_ts, True, R25, GMR, CN_strand_count,
-                                      CN_strand_rdc, CN_strand_gmr, CN_strand_radius,
-                                      CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
+                Zprim[i3, j1] = Zprim[i1, j3] = offDiagZprim(3, 1, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
+                Zprim[i3, j2] = Zprim[i2, j3] = offDiagZprim(3, 2, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
+                Zprim[i3, j3] = diagZprim(wireinfo, wire_cn_ts, True, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                          CN_strand_gmr, CN_strand_radius, CN_diameter_jacket, TS_tape_thickness,
+                                          TS_diameter_screen)
                 # row 4
-                Zprim[i4,
-                      j1] = Zprim[i1,
-                                  j4] = offDiagZprim(4, 1, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-                Zprim[i4,
-                      j2] = Zprim[i2,
-                                  j4] = offDiagZprim(4, 2, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-                Zprim[i4,
-                      j3] = Zprim[i3,
-                                  j4] = offDiagZprim(4, 3, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-                Zprim[i4,
-                      j4] = diagZprim(wireinfo, wire_cn_ts, True, R25, GMR, CN_strand_count,
-                                      CN_strand_rdc, CN_strand_gmr, CN_strand_radius,
-                                      CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
+                Zprim[i4, j1] = Zprim[i1, j4] = offDiagZprim(4, 1, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
+                Zprim[i4, j2] = Zprim[i2, j4] = offDiagZprim(4, 2, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
+                Zprim[i4, j3] = Zprim[i3, j4] = offDiagZprim(4, 3, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
+                Zprim[i4, j4] = diagZprim(wireinfo, wire_cn_ts, True, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                          CN_strand_gmr, CN_strand_radius, CN_diameter_jacket, TS_tape_thickness,
+                                          TS_diameter_screen)
             elif line_name == tape_line:
                 # row 3
                 # coordinates for neutral are stored in index 2 for TapeShieldCableInfo
                 Zprim[i3, j1] = Zprim[i1, j3] = Zprim[i3, j2] = Zprim[i2, j3] = offDiagZprim(
-                    2, 1, wireinfo, wire_spacing_info, wire_cn_ts, XCoord, YCoord, R25, GMR,
-                    CN_strand_count, CN_strand_rdc, CN_strand_gmr, CN_strand_radius,
-                    CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
-                Zprim[i3,
-                      j3] = diagZprim(wireinfo, wire_cn_ts, True, R25, GMR, CN_strand_count,
-                                      CN_strand_rdc, CN_strand_gmr, CN_strand_radius,
-                                      CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
+                    2, 1, wireinfo, wire_spacing_info, wire_cn_ts, XCoord, YCoord, R25, GMR, CN_strand_count,
+                    CN_strand_rdc, CN_strand_gmr, CN_strand_radius, CN_diameter_jacket, TS_tape_thickness,
+                    TS_diameter_screen)
+                Zprim[i3, j3] = diagZprim(wireinfo, wire_cn_ts, True, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                          CN_strand_gmr, CN_strand_radius, CN_diameter_jacket, TS_tape_thickness,
+                                          TS_diameter_screen)
         elif phaseIdx == 2:
             pair_i2b1 = bus1 + ybusPhaseIdx[phase]
             pair_i2b2 = bus2 + ybusPhaseIdx[phase]
             # row 3
-            Zprim[i3, j1] = Zprim[i1,
-                                  j3] = offDiagZprim(3, 1, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-            Zprim[i3, j2] = Zprim[i2,
-                                  j3] = offDiagZprim(3, 2, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-            Zprim[i3, j3] = diagZprim(wireinfo, wire_cn_ts, False, R25, GMR, CN_strand_count,
-                                      CN_strand_rdc, CN_strand_gmr, CN_strand_radius,
-                                      CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
+            Zprim[i3,
+                  j1] = Zprim[i1,
+                              j3] = offDiagZprim(3, 1, wireinfo, wire_spacing_info, wire_cn_ts, XCoord, YCoord, R25,
+                                                 GMR, CN_strand_count, CN_strand_rdc, CN_strand_gmr, CN_strand_radius,
+                                                 CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
+            Zprim[i3,
+                  j2] = Zprim[i2,
+                              j3] = offDiagZprim(3, 2, wireinfo, wire_spacing_info, wire_cn_ts, XCoord, YCoord, R25,
+                                                 GMR, CN_strand_count, CN_strand_rdc, CN_strand_gmr, CN_strand_radius,
+                                                 CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
+            Zprim[i3,
+                  j3] = diagZprim(wireinfo, wire_cn_ts, False, R25, GMR, CN_strand_count, CN_strand_rdc, CN_strand_gmr,
+                                  CN_strand_radius, CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
             if wireinfo == 'ConcentricNeutralCableInfo':
                 CN_done = True
                 # row 4
-                Zprim[i4,
-                      j1] = Zprim[i1,
-                                  j4] = offDiagZprim(4, 1, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-                Zprim[i4,
-                      j2] = Zprim[i2,
-                                  j4] = offDiagZprim(4, 2, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-                Zprim[i4,
-                      j3] = Zprim[i3,
-                                  j4] = offDiagZprim(4, 3, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-                Zprim[i4,
-                      j4] = diagZprim(wireinfo, wire_cn_ts, True, R25, GMR, CN_strand_count,
-                                      CN_strand_rdc, CN_strand_gmr, CN_strand_radius,
-                                      CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
+                Zprim[i4, j1] = Zprim[i1, j4] = offDiagZprim(4, 1, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
+                Zprim[i4, j2] = Zprim[i2, j4] = offDiagZprim(4, 2, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
+                Zprim[i4, j3] = Zprim[i3, j4] = offDiagZprim(4, 3, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
+                Zprim[i4, j4] = diagZprim(wireinfo, wire_cn_ts, True, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                          CN_strand_gmr, CN_strand_radius, CN_diameter_jacket, TS_tape_thickness,
+                                          TS_diameter_screen)
                 # row 5
-                Zprim[i5,
-                      j1] = Zprim[i1,
-                                  j5] = offDiagZprim(5, 1, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-                Zprim[i5,
-                      j2] = Zprim[i2,
-                                  j5] = offDiagZprim(5, 2, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-                Zprim[i5,
-                      j3] = Zprim[i3,
-                                  j5] = offDiagZprim(5, 3, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-                Zprim[i5,
-                      j4] = Zprim[i4,
-                                  j5] = offDiagZprim(5, 4, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-                Zprim[i5,
-                      j5] = diagZprim(wireinfo, wire_cn_ts, True, R25, GMR, CN_strand_count,
-                                      CN_strand_rdc, CN_strand_gmr, CN_strand_radius,
-                                      CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
+                Zprim[i5, j1] = Zprim[i1, j5] = offDiagZprim(5, 1, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
+                Zprim[i5, j2] = Zprim[i2, j5] = offDiagZprim(5, 2, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
+                Zprim[i5, j3] = Zprim[i3, j5] = offDiagZprim(5, 3, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
+                Zprim[i5, j4] = Zprim[i4, j5] = offDiagZprim(5, 4, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
+                Zprim[i5, j5] = diagZprim(wireinfo, wire_cn_ts, True, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                          CN_strand_gmr, CN_strand_radius, CN_diameter_jacket, TS_tape_thickness,
+                                          TS_diameter_screen)
                 # row 6
-                Zprim[i6,
-                      j1] = Zprim[i1,
-                                  j6] = offDiagZprim(6, 1, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-                Zprim[i6,
-                      j2] = Zprim[i2,
-                                  j6] = offDiagZprim(6, 2, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-                Zprim[i6,
-                      j3] = Zprim[i3,
-                                  j6] = offDiagZprim(6, 3, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-                Zprim[i6,
-                      j4] = Zprim[i4,
-                                  j6] = offDiagZprim(6, 4, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-                Zprim[i6,
-                      j5] = Zprim[i5,
-                                  j6] = offDiagZprim(6, 5, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-                Zprim[i6,
-                      j6] = diagZprim(wireinfo, wire_cn_ts, True, R25, GMR, CN_strand_count,
-                                      CN_strand_rdc, CN_strand_gmr, CN_strand_radius,
-                                      CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
+                Zprim[i6, j1] = Zprim[i1, j6] = offDiagZprim(6, 1, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
+                Zprim[i6, j2] = Zprim[i2, j6] = offDiagZprim(6, 2, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
+                Zprim[i6, j3] = Zprim[i3, j6] = offDiagZprim(6, 3, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
+                Zprim[i6, j4] = Zprim[i4, j6] = offDiagZprim(6, 4, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
+                Zprim[i6, j5] = Zprim[i5, j6] = offDiagZprim(6, 5, wireinfo, wire_spacing_info, wire_cn_ts, XCoord,
+                                                             YCoord, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                                             CN_strand_gmr, CN_strand_radius, CN_diameter_jacket,
+                                                             TS_tape_thickness, TS_diameter_screen)
+                Zprim[i6, j6] = diagZprim(wireinfo, wire_cn_ts, True, R25, GMR, CN_strand_count, CN_strand_rdc,
+                                          CN_strand_gmr, CN_strand_radius, CN_diameter_jacket, TS_tape_thickness,
+                                          TS_diameter_screen)
         elif phaseIdx == 3:
             # this can only be phase 'N' so no need to store 'pair' values
             # row 4
-            Zprim[i4, j1] = Zprim[i1,
-                                  j4] = offDiagZprim(4, 1, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-            Zprim[i4, j2] = Zprim[i2,
-                                  j4] = offDiagZprim(4, 2, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-            Zprim[i4, j3] = Zprim[i3,
-                                  j4] = offDiagZprim(4, 3, wireinfo, wire_spacing_info, wire_cn_ts,
-                                                     XCoord, YCoord, R25, GMR, CN_strand_count,
-                                                     CN_strand_rdc, CN_strand_gmr,
-                                                     CN_strand_radius, CN_diameter_jacket,
-                                                     TS_tape_thickness, TS_diameter_screen)
-            Zprim[i4, j4] = diagZprim(wireinfo, wire_cn_ts, phase, R25, GMR, CN_strand_count,
-                                      CN_strand_rdc, CN_strand_gmr, CN_strand_radius,
-                                      CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
+            Zprim[i4,
+                  j1] = Zprim[i1,
+                              j4] = offDiagZprim(4, 1, wireinfo, wire_spacing_info, wire_cn_ts, XCoord, YCoord, R25,
+                                                 GMR, CN_strand_count, CN_strand_rdc, CN_strand_gmr, CN_strand_radius,
+                                                 CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
+            Zprim[i4,
+                  j2] = Zprim[i2,
+                              j4] = offDiagZprim(4, 2, wireinfo, wire_spacing_info, wire_cn_ts, XCoord, YCoord, R25,
+                                                 GMR, CN_strand_count, CN_strand_rdc, CN_strand_gmr, CN_strand_radius,
+                                                 CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
+            Zprim[i4,
+                  j3] = Zprim[i3,
+                              j4] = offDiagZprim(4, 3, wireinfo, wire_spacing_info, wire_cn_ts, XCoord, YCoord, R25,
+                                                 GMR, CN_strand_count, CN_strand_rdc, CN_strand_gmr, CN_strand_radius,
+                                                 CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
+            Zprim[i4,
+                  j4] = diagZprim(wireinfo, wire_cn_ts, phase, R25, GMR, CN_strand_count, CN_strand_rdc, CN_strand_gmr,
+                                  CN_strand_radius, CN_diameter_jacket, TS_tape_thickness, TS_diameter_screen)
         # for OverheadWireInfo, take advantage that there is always a phase N
         # and it's always the last item processed for a line_name so a good way
         # to know when to trigger the Ybus comparison code
         # for ConcentricNeutralCableInfo, a flag is the easiest
-        if (wireinfo == 'OverheadWireInfo'
-                and phase == 'N') or (wireinfo == 'ConcentricNeutralCableInfo' and CN_done):
+        if (wireinfo == 'OverheadWireInfo' and phase == 'N') or (wireinfo == 'ConcentricNeutralCableInfo' and CN_done):
             if wireinfo == 'ConcentricNeutralCableInfo':
                 # the Z-hat slicing below is based on having an 'N' phase so need to
                 # account for that when it doesn't exist
@@ -1757,7 +1663,7 @@ def fillYbusWireInfoAndWireSpacingInfoLines(distributedArea, Ybus: Dict):
             Zij = Zprim[:phaseIdx, :phaseIdx]
             Zin = Zprim[:phaseIdx, phaseIdx:]
             Znj = Zprim[phaseIdx:, :phaseIdx]
-            #Znn = Zprim[phaseIdx:,phaseIdx:]
+            # Znn = Zprim[phaseIdx:,phaseIdx:]
             invZnn = np.linalg.inv(Zprim[phaseIdx:, phaseIdx:])
             # finally, compute Zabc from Z-hat matrices
             Zabc = np.subtract(Zij, np.matmul(np.matmul(Zin, invZnn), Znj))
@@ -1766,8 +1672,8 @@ def fillYbusWireInfoAndWireSpacingInfoLines(distributedArea, Ybus: Dict):
             # invert the matrix
             invZabc = np.linalg.inv(lenZabc)
             # test if the inverse * original = identity
-            #identityTest = np.dot(lenZabc, invZabc)
-            #logger.debug('identity test for ' + line_name + ': ' + str(identityTest))
+            # identityTest = np.dot(lenZabc, invZabc)
+            # logger.debug('identity test for ' + line_name + ': ' + str(identityTest))
             # negate the matrix and assign it to Ycomp
             Ycomp = invZabc * -1
             if Ycomp.size == 1:
@@ -1825,7 +1731,7 @@ def fillYbus6x6Xfmrs(bus1: str, bus2: str, DY_flag: bool, Ycomp: np.ndarray, Ybu
         fillYbusUnique(bus2 + '.2', bus1 + '.3', Ycomp[4, 2], Ybus)
 
 
-def fillYbusPowerTransformerEndXfmrs(distributedArea, Ybus: Dict):
+def fillYbusPowerTransformerEndXfmrs(distributedArea: DistributedArea, Ybus: Dict):
     bindings = powerTransformerEndXfmrImpedances(distributedArea)
     if len(bindings) == 0:
         return
@@ -1851,8 +1757,8 @@ def fillYbusPowerTransformerEndXfmrs(distributedArea, Ybus: Dict):
             bus2 = Bus[xfmr_name][2]
             bus3 = obj['bus']['value'].upper()
             logger.warn(
-                f'3-winding, 3-phase PowerTransformerEnd transformers are not supported, xfmr: {xfmr_name}, bus1: {bus1}, bus2: {bus2}, bus3: {bus3}'
-            )
+                f'3-winding, 3-phase PowerTransformerEnd transformers are not supported, xfmr: {xfmr_name}, bus1: \
+                {bus1}, bus2: {bus2}, bus3: {bus3}')
             # need to clear out the previous dictionary entries for this
             # 3-winding transformer so it isn't processed below
             Bus.pop(xfmr_name, None)
@@ -1937,8 +1843,7 @@ def fillYbusPowerTransformerEndXfmrs(distributedArea, Ybus: Dict):
         fillYbus6x6Xfmrs(bus1, bus2, connect_DY_flag, Ycomp, Ybus)
 
 
-def fillYbusTransformerTankXfmrs(distributedArea,
-                                 Ybus: Dict):
+def fillYbusTransformerTankXfmrs(distributedArea: DistributedArea, Ybus: Dict):
     bindings = transformerTankXfmrRated(distributedArea)
     if len(bindings) == 0:
         return
@@ -1986,7 +1891,7 @@ def fillYbusTransformerTankXfmrs(distributedArea,
     B['3p'] = np.zeros((6, 3))
     B['3p'][0, 0] = B['3p'][2, 1] = B['3p'][4, 2] = 1.0
     B['3p'][1, 0] = B['3p'][3, 1] = B['3p'][5, 2] = -1.0
-    #logger.debug(B['3p'])
+    # logger.debug(B['3p'])
     # 1-phase, 2-windings
     B['2w'] = np.zeros((2, 1))
     B['2w'][0, 0] = 1.0
@@ -2056,13 +1961,12 @@ def fillYbusTransformerTankXfmrs(distributedArea,
             N[3, 1] = N[7, 3] = N[11, 5] = -1.0 / Vs
         elif Bkey == '3w':
             zsc_1V = complex(3.0 * r_ohm_pu, mesh_x_ohm_pu) * (1.0 / RatedS[xfmr_name][1])
-            zod_1V = complex(2.0 * R_ohm[xfmr_name][2],
-                             Leakage_z[xfmr_name][2]) / zBaseS * (1.0 / RatedS[xfmr_name][2])
+            zod_1V = complex(2.0 * R_ohm[xfmr_name][2], Leakage_z[xfmr_name][2]) / zBaseS * (1.0 / RatedS[xfmr_name][2])
             # initialize ZB
             ZB = np.zeros((2, 2), dtype=complex)
             ZB[0, 0] = ZB[1, 1] = zsc_1V
             ZB[1, 0] = ZB[0, 1] = 0.5 * (zsc_1V + zsc_1V - zod_1V)
-            #initialize N
+            # initialize N
             Vp = RatedU[xfmr_name][1]
             Vs1 = RatedU[xfmr_name][2]
             Vs2 = RatedU[xfmr_name][3]
@@ -2078,7 +1982,7 @@ def fillYbusTransformerTankXfmrs(distributedArea,
             # initialize ZB
             ZB = np.zeros((1, 1), dtype=complex)
             ZB[0, 0] = zsc_1V
-            #initialize N
+            # initialize N
             Vp = RatedU[xfmr_name][1]
             Vs = RatedU[xfmr_name][2]
             N = np.zeros((4, 2))
@@ -2168,7 +2072,7 @@ def fillYbusNoSwapSwitches(bus1: str, bus2: str, is_Open: bool, Ybus: Dict):
         fillYbusAddSwitches(bus2, bus2, Ybus)
 
 
-def fillYbusSwitchingEquipmentSwitches(distributedArea, Ybus: Dict):
+def fillYbusSwitchingEquipmentSwitches(distributedArea: DistributedArea, Ybus: Dict):
     bindings = switchingEquipmentSwitchNames(distributedArea)
     if len(bindings) == 0:
         return
@@ -2190,8 +2094,7 @@ def fillYbusSwitchingEquipmentSwitches(distributedArea, Ybus: Dict):
             switchColorIdx = 0
             for phase in phases_side1:
                 if phase in ybusPhaseIdx:
-                    fillYbusNoSwapSwitches(bus1 + ybusPhaseIdx[phase], bus2 + ybusPhaseIdx[phase],
-                                           is_Open, Ybus)
+                    fillYbusNoSwapSwitches(bus1 + ybusPhaseIdx[phase], bus2 + ybusPhaseIdx[phase], is_Open, Ybus)
 
 
 def fillYbusOnlyAddShunts(bus: str, Yval: complex, Ybus: Dict):
@@ -2203,8 +2106,7 @@ def fillYbusOnlyAddShunts(bus: str, Yval: complex, Ybus: Dict):
     Ybus[bus][bus] += Yval
 
 
-def fillYbusShuntElementShunts(distributedArea,
-                               Ybus: Dict):
+def fillYbusShuntElementShunts(distributedArea: DistributedArea, Ybus: Dict):
     # map query phase values to nodelist indexes
     ybusPhaseIdx = {'A': '.1', 'B': '.2', 'C': '.3', 's1': '.1', 's2': '.2'}
     # CAPACITORS DATA STRUCTURES INITIALIZATION
@@ -2320,9 +2222,8 @@ def fillYbusShuntElementShunts(distributedArea,
                 zBaseS = ratedU_sq / RatedS_tank[xfmr][2]
                 sum_shunt_real += (Noloadloss[xfmr] * 1000.0) / ratedU_sq
                 G_c = (Noloadloss[xfmr] * 1000.0) / ratedU_sq
-                Ym = I_exciting[xfmr] / (
-                    100.0) * RatedS_tank[xfmr][2] / RatedU_tank[xfmr][2] * 1 / (
-                        RatedU_tank[xfmr][2])
+                Ym = I_exciting[xfmr] / (100.0) * RatedS_tank[xfmr][2] / RatedU_tank[xfmr][2] * 1 / (
+                    RatedU_tank[xfmr][2])
                 try:
                     B_m = math.sqrt(Ym**2 - G_c**2)
                 except:
@@ -2358,56 +2259,44 @@ def makeYbusSerializable(Ybus: Dict):
     for bus1 in Ybus.keys():
         for bus2 in Ybus[bus1].keys():
             yVal = complex(Ybus[bus1][bus2])
-            Ybus[bus1][bus2] = [yVal.real, yVal.imag]
+            Ybus[bus1][bus2] = (yVal.real, yVal.imag)
 
 
-def calculateYbus(distributedArea) -> Dict:
+def calculateYbus(distributedArea: DistributedArea) -> Dict:
     Ybus = {}
-    areaID = None
-    if isinstance(distributedArea, DistributedModel):
-        areaID = distributedArea.feeder.mRID
-    else:
-        areaID = distributedArea.area_id
+    areaID = distributedArea.container.mRID
     fillYbusPerLengthPhaseImpedanceLines(distributedArea, Ybus)
-    logger.debug(
-        f"Ybus for {areaID} after fillYbusPerLengthPhaseImpedanceLines is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
-    )
+    logger.debug(f"Ybus for {areaID} after fillYbusPerLengthPhaseImpedanceLines is:\n"
+                 f"{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
     fillYbusPerLengthSequenceImpedanceLines(distributedArea, Ybus)
-    logger.debug(
-        f"Ybus for {areaID} after fillYbusPerLengthSequenceImpedanceLines is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
-    )
+    logger.debug(f"Ybus for {areaID} after fillYbusPerLengthSequenceImpedanceLines is:\n"
+                 f"{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
     fillYbusACLineSegmentLines(distributedArea, Ybus)
-    logger.debug(
-        f"Ybus for {areaID} after fillYbusACLineSegmentLines is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
-    )
+    logger.debug(f"Ybus for {areaID} after fillYbusACLineSegmentLines is:\n"
+                 f"{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
     fillYbusWireInfoAndWireSpacingInfoLines(distributedArea, Ybus)
-    logger.debug(
-        f"Ybus for {areaID} after fillYbusWireInfoAndWireSpacingInfoLines is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
-    )
+    logger.debug(f"Ybus for {areaID} after fillYbusWireInfoAndWireSpacingInfoLines is:\n"
+                 f"{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
     line_count = countUniqueYbus(Ybus)
     logger.debug(f'Line_model # entries: {line_count}')
     fillYbusPowerTransformerEndXfmrs(distributedArea, Ybus)
-    logger.debug(
-        f"Ybus for {areaID} after fillYbusPowerTransformerEndXfmrs is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
-    )
+    logger.debug(f"Ybus for {areaID} after fillYbusPowerTransformerEndXfmrs is:\n"
+                 f"{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
     fillYbusTransformerTankXfmrs(distributedArea, Ybus)
-    logger.debug(
-        f"Ybus for {areaID} after fillYbusTransformerTankXfmrs is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
-    )
+    logger.debug(f"Ybus for {areaID} after fillYbusTransformerTankXfmrs is:\n"
+                 f"{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
     count = countUniqueYbus(Ybus)
     xfmr_count = count - line_count
     logger.debug(f'Power_transformer # entries: {xfmr_count}')
     fillYbusSwitchingEquipmentSwitches(distributedArea, Ybus)
-    logger.debug(
-        f"Ybus for {areaID} after fillYbusSwitchingEquipmentSwitches is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
-    )
+    logger.debug(f"Ybus for {areaID} after fillYbusSwitchingEquipmentSwitches is:\n"
+                 f"{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
     count = countUniqueYbus(Ybus)
     switch_count = count - line_count - xfmr_count
     logger.debug(f'Switching_equipment # entries: {switch_count}')
     fillYbusShuntElementShunts(distributedArea, Ybus)
-    logger.debug(
-       f"Ybus for {areaID} after fillYbusShuntElementShunts is:\n{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}"
-    )
+    logger.debug(f"Ybus for {areaID} after fillYbusShuntElementShunts is:\n"
+                 f"{json.dumps(Ybus, indent=4, sort_keys=True, cls=ComplexEncoder)}")
     logger.debug('Shunt_element contributions added (no new entries)')
     makeYbusSerializable(Ybus)
     return Ybus
