@@ -7,7 +7,7 @@ fieldBusConfigBoilerPlate = {
     "connections": {
         "id": "otbus",
         "is_ot_bus": True,
-        "connection_type": "CONNECTION_TYPE_GRIDAPPSD",
+        "connection_type": "gridappsd_field_bus.field_interface.gridappsd_field_bus.GridAPPSDMessageBus",
         "connection_args": {
             "GRIDAPPSD_ADDRESS": "tcp://gridappsd:61613",
             "GRIDAPPSD_USER": "system",

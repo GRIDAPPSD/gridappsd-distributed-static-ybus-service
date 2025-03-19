@@ -46,12 +46,12 @@ from typing import Dict, List
 from cimgraph.data_profile import CIM_PROFILE
 from cimgraph.models import DistributedArea
 import cimgraph.utils as cimUtils
-import gridappsd.field_interface.agents.agents as agents_mod
+import gridappsd_field_bus.field_interface.agents.agents as agents_mod
 import numpy as np
 
 # TODO: query gridappsd-python for correct cim_profile instead of hardcoding it.
-cim_profile = CIM_PROFILE.RC4_2021.value
-agents_mod.set_cim_profile(cim_profile, iec61970_301=7)
+cim_profile = CIM_PROFILE.CIMHUB_2023.value
+agents_mod.set_cim_profile(cim_profile, iec61970_301=8)
 cim = agents_mod.cim
 logger = logging.getLogger(__name__)
 
@@ -760,7 +760,7 @@ def transformerTankXfmrNames(distributedArea: DistributedArea) -> List[Dict]:
             desiredInfo["enum"] = {"value": transformerTankEnd.endNumber}
             desiredInfo["bus"] = {"value": transformerTankEnd.Terminal.ConnectivityNode.name}
             desiredInfo["baseV"] = {"value": transformerTankEnd.BaseVoltage.nominalVoltage}
-            desiredInfo["phase"] = {"value": transformerTankEnd.phases.value}
+            desiredInfo["phase"] = {"value": transformerTankEnd.orderedPhases.value}
             dictContainsNone = False
             nullAttributes = []
             for i, v in desiredInfo.items():
@@ -1370,7 +1370,7 @@ def fillYbusWireInfoAndWireSpacingInfoLines(distributedArea: DistributedArea, Yb
     YCoord = {}
     for obj in bindings:
         wire_spacing_info = obj['wire_spacing_info']['value']
-        cableFlag = obj['cable']['value'].upper() == 'TRUE'    # don't depend on lowercase
+        cableFlag = obj['cable']['value']
         seq = int(obj['seq']['value'])
         if wire_spacing_info not in XCoord.keys():
             XCoord[wire_spacing_info] = {}
@@ -2080,7 +2080,7 @@ def fillYbusSwitchingEquipmentSwitches(distributedArea: DistributedArea, Ybus: D
     ybusPhaseIdx = {'A': '.1', 'B': '.2', 'C': '.3'}
     for obj in bindings:
         sw_name = obj['sw_name']['value']
-        is_Open = obj['is_Open']['value'].upper() == 'TRUE'
+        is_Open = obj['is_Open']['value']
         bus1 = obj['bus1']['value'].upper()
         bus2 = obj['bus2']['value'].upper()
         phases_side1 = obj['phases_side1']['value']

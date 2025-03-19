@@ -3,6 +3,6 @@ connections:
     GRIDAPPSD_ADDRESS: tcp://gridappsd:61613
     GRIDAPPSD_PASSWORD: manager
     GRIDAPPSD_USER: system
-  connection_type: CONNECTION_TYPE_GRIDAPPSD
+  connection_type: gridappsd_field_bus.field_interface.gridappsd_field_bus.GridAPPSDMessageBus
   id: _5B816B93-7A5F-B64C-8460-47C17D6E4B0F.0
   is_ot_bus: true
