@@ -46,17 +46,15 @@ import time
 from typing import Dict, Optional
 
 from cimgraph.data_profile import CIM_PROFILE
-import gridappsd.field_interface.agents.agents as agents_mod
-from gridappsd.field_interface.agents import FeederAgent, SwitchAreaAgent, SecondaryAreaAgent
-from gridappsd.field_interface.interfaces import FieldMessageBus, MessageBusDefinition
+import gridappsd_field_bus.field_interface.agents.agents as agents_mod
+from gridappsd_field_bus.field_interface.agents import FeederAgent, SwitchAreaAgent, SecondaryAreaAgent
+from gridappsd_field_bus.field_interface.interfaces import FieldMessageBus, MessageBusDefinition
 
 import ybus_utils as utils
 
 #TODO: query gridappsd-python for correct cim_profile instead of hardcoding it.
-cim_profile = CIM_PROFILE.RC4_2021.value
-agents_mod.set_cim_profile(cim_profile, iec61970_301=7)
-# cim_profile = CIM_PROFILE.CIMHUB_2023.value
-# agents_mod.set_cim_profile(cim_profile, iec61970_301=8)
+cim_profile = CIM_PROFILE.CIMHUB_2023.value
+agents_mod.set_cim_profile(cim_profile, iec61970_301=8)
 cim = agents_mod.cim
 logging.basicConfig(format='%(asctime)s::%(levelname)s::%(name)s::%(filename)s::%(lineno)d::%(message)s',
                     filename='DistributedYBus.log',
@@ -189,10 +187,11 @@ def getMessageBusDefinition(areaId: str) -> MessageBusDefinition:
         "GRIDAPPSD_PASSWORD": os.environ.get('GRIDAPPSD_PASSWORD'),
         "GRIDAPPSD_APPLICATION_ID": os.environ.get('GRIDAPPSD_APPLICATION_ID')
     }
-    bus = MessageBusDefinition(id=areaId,
-                               is_ot_bus=True,
-                               connection_type="GRIDAPPSD_TYPE_GRIDAPPSD",
-                               conneciton_args=connectionArgs)
+    bus = MessageBusDefinition(
+        id=areaId,
+        is_ot_bus=True,
+        connection_type="gridappsd_field_bus.field_interface.gridappsd_field_bus.GridAPPSDMessageBus",
+        connection_args=connectionArgs)
     return bus
 
 
@@ -288,8 +287,8 @@ def main():
             logger.info(f"Creating Secondary Area Ybus Service for area id: {secondaryAreaMessageBusDef.id}")
             secondaryAreaService = SecondaryAreaAgentLevelStaticYbusService(switchAreaMessageBusDef,
                                                                             secondaryAreaMessageBusDef, serviceMetadata)
-            if len(secondaryAreaService.agent_area_dict['addressable_equipment']) == 0 and \
-                    len(secondaryAreaService.agent_area_dict['unaddressable_equipment']) == 0:
+            if len(secondaryAreaService.agent_area_dict['AddressableEquipment']) == 0 and \
+                    len(secondaryAreaService.agent_area_dict['UnaddressableEquipment']) == 0:
                 secondaryAreaService.disconnect()
             else:
                 runningYbusServiceInfo.append(f"{type(secondaryAreaService).__name__}:"
@@ -300,32 +299,32 @@ def main():
         feederMessageBusDef = getMessageBusDefinition(modelMrid)
         logger.info(f"Creating Feeder Area Ybus Service for area id: {feederMessageBusDef.id}")
         feederYbusService = FeederAgentLevelStaticYbusService(systemMessageBusDef, feederMessageBusDef, serviceMetadata)
-        #feederYbusService.updateYbusService()
+        feederYbusService.updateYbusService()
         runningYbusServiceInfo.append(f"{type(feederYbusService).__name__}:{feederMessageBusDef.id}")
         runningServiceInstances.append(feederYbusService)
-        for switchArea in feederYbusService.agent_area_dict.get('switch_areas', []):
-            switchAreaId = switchArea.get('message_bus_id')
+        for switchArea in feederYbusService.agent_area_dict.get('SwitchAreas', []):
+            switchAreaId = switchArea.get('@id')
             if switchAreaId is not None:
                 switchAreaMessageBusDef = getMessageBusDefinition(switchAreaId)
                 logger.info(f"Creating Switch Area Ybus Service for area id: {switchAreaMessageBusDef.id}")
                 switchAreaService = SwitchAreaAgentLevelStaticYbusService(feederMessageBusDef, switchAreaMessageBusDef,
                                                                           serviceMetadata)
-                #switchAreaService.updateYbusService()
+                switchAreaService.updateYbusService()
                 runningYbusServiceInfo.append(f"{type(switchAreaService).__name__}:{switchAreaMessageBusDef.id}")
                 runningServiceInstances.append(switchAreaService)
-                for secondaryArea in switchArea.get('secondary_areas', []):
-                    secondaryAreaId = secondaryArea.get('message_bus_id')
+                for secondaryArea in switchArea.get('SecondaryAreas', []):
+                    secondaryAreaId = secondaryArea.get('@id')
                     if secondaryAreaId is not None:
                         secondaryAreaMessageBusDef = getMessageBusDefinition(secondaryAreaId)
                         logger.info(
                             f"Creating Secondary Area Ybus Service for area id: {secondaryAreaMessageBusDef.id}")
                         secondaryAreaService = SecondaryAreaAgentLevelStaticYbusService(
                             switchAreaMessageBusDef, secondaryAreaMessageBusDef, serviceMetadata)
-                        if len(secondaryAreaService.agent_area_dict['addressable_equipment']) == 0 and \
-                                len(secondaryAreaService.agent_area_dict['unaddressable_equipment']) == 0:
+                        if len(secondaryAreaService.agent_area_dict['AddressableEquipment']) == 0 and \
+                                len(secondaryAreaService.agent_area_dict['UnaddressableEquipment']) == 0:
                             secondaryAreaService.disconnect()
                         else:
-                            #secondaryAreaService.updateYbusService()
+                            secondaryAreaService.updateYbusService()
                             runningYbusServiceInfo.append(f"{type(secondaryAreaService).__name__}:"
                                                           f"{secondaryAreaMessageBusDef.id}")
                             runningServiceInstances.append(secondaryAreaService)
